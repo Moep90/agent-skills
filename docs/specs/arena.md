@@ -241,6 +241,8 @@ or a style guide.
   or lint do not stop the run; they are evidence for the reviewer. If the
   checks cannot be executed at all, the ledger records that with the error
   and the review proceeds.
+  The last 50 lines of the output also go into the review prompt, because a
+  `claude -p` reviewer may not be able to read files under `/tmp`.
 
   - Test: none
   - Since: this change
@@ -460,7 +462,7 @@ exception is a broken output contract, which is often transient.
   - Test: manual: AC-8
   - Since: this change
 
-- ARENA-24: Every stop after the preflight MUST report the artifact path, the
+- ARENA-24: Every stop after the run directory exists MUST report the artifact path, the
   ledger path and the round number, and keep the run directory.
 
   A stopped run is not resumable. Running `/arena` again on the same path

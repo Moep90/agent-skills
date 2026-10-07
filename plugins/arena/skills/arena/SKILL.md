@@ -109,7 +109,8 @@ then reviews. A path run starts with a review.
 1. `R = R + 1`.
 2. For rubric `code`: run the project's tests and linter (from its Makefile, package
    scripts or CI config), save the output to `$RUN/validation-$R.txt` and add one ledger line
-   `VALIDATION review $R: <command> exited <code>, see $RUN/validation-$R.txt`. Failing checks do
+   `VALIDATION review $R: <command> exited <code>, see $RUN/validation-$R.txt`. Put the last
+   50 lines of that file into the review prompt as well. Failing checks do
    not stop the run; they are evidence for the reviewer. If they cannot run, record the error
    the same way.
 3. Write the review prompt (section 7) to `$RUN/review-$R.prompt`.
@@ -141,8 +142,9 @@ then reviews. A path run starts with a review.
    - `new`: append `R$R-F<n> | <severity> | criterion: <name> | <location> | <problem> | status: open |`
      with `<n>` counting from 1 within this review;
    - an ID whose status is `fixed`: set it back to `open` (the fix did not hold);
-   - an ID whose status is `rejected`: the reviewer disputes a rejection. Stop now (section 8)
-     and hand that finding to the user.
+   - an ID whose status is `rejected`: the reviewer disputes a rejection. Finish recording
+     every line of this review, then stop (section 8) and hand the disputed finding(s) to the
+     user.
 8. Act on the verdict:
    - `APPROVED`: stop (section 8) with success.
    - `BLOCKED`: stop and hand over; the reviewer needs a decision from the user.
@@ -215,6 +217,8 @@ the author's reason: if it does not resolve the problem, report the entry again 
 and say why; the human owner then decides.
 <content of ledger.md>
 
+<For rubric code: "Last 50 lines of the validation output:" and those lines>
+
 Rules:
 - A finding is `blocking` only if it violates a named rubric criterion, gives a location, and
   the artifact would be wrong or unusable because of it. Style and taste are `minor`.
@@ -247,7 +251,7 @@ Change only <target path>. End your reply with one line per open blocking findin
 
 ## 8. Stop report
 
-Every stop after the preflight reports:
+Every stop after the run directory exists reports:
 
 - the outcome: approved, handed over (blocked, cap reached, disputed rejection), contract
   violation, CLI failure (with the quoted stderr), or unchanged target;
