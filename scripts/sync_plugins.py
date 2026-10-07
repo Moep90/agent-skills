@@ -30,9 +30,9 @@ ROOT = Path(__file__).resolve().parent.parent
 PLUGINS_DIR_NAME = "plugins"
 
 REPO_URL = "https://github.com/Moep90/agent-skills"
-MARKET_NAME = "agent-skills"
+MARKET_NAME = "moep90-skills"
 MARKET_DESCRIPTION = "Agent plugins for Claude Code, Codex CLI, Cursor and OpenCode."
-MARKET_DISPLAY = "Agent Skills"
+MARKET_DISPLAY = "Moep90 Skills"
 OWNER = "Moep90"
 LICENSE = "Apache-2.0"
 

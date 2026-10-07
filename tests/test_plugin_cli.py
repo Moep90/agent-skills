@@ -18,10 +18,12 @@ from pathlib import Path
 
 import pytest
 
+import sync_plugins
+
 pytestmark = pytest.mark.plugin_cli
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_NAMES = {"kapitan-core", "kapitan-generators"}
+PLUGIN_NAMES = set(sync_plugins.PLUGINS)
 
 
 @pytest.mark.skipif(shutil.which("claude") is None, reason="claude CLI not installed")
@@ -42,6 +44,29 @@ def test_claude_validates_marketplace_and_plugins(path: Path) -> None:
     )
 
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("claude") is None, reason="claude CLI not installed")
+def test_claude_adds_the_marketplace_and_installs_every_plugin(tmp_path: Path) -> None:
+    # validate --strict does not reject a reserved marketplace name; a real add does
+    # (spec MKT-3a). An isolated config dir keeps the user's real plugins untouched.
+    env = {**os.environ, "CLAUDE_CONFIG_DIR": str(tmp_path / "claude")}
+
+    def claude(*args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["claude", "plugin", *args],
+            capture_output=True,
+            text=True,
+            env=env,
+            stdin=subprocess.DEVNULL,
+            timeout=120,
+        )
+
+    added = claude("marketplace", "add", str(REPO_ROOT))
+    assert added.returncode == 0, added.stdout + added.stderr
+    for name in sorted(PLUGIN_NAMES):
+        installed = claude("install", f"{name}@{sync_plugins.MARKET_NAME}")
+        assert installed.returncode == 0, installed.stdout + installed.stderr
 
 
 @pytest.mark.skipif(shutil.which("codex") is None, reason="codex CLI not installed")
@@ -66,7 +91,7 @@ def test_codex_marketplace_lists_our_plugins(tmp_path: Path) -> None:
             "plugin",
             "list",
             "--marketplace",
-            "agent-skills",
+            sync_plugins.MARKET_NAME,
             "--available",
             "--json",
         ],
