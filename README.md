@@ -13,14 +13,14 @@ Agent plugins for Claude Code, Codex CLI, Cursor and OpenCode, versioned per plu
 
 ```text
 /plugin marketplace add Moep90/agent-skills
-/plugin install kapitan-core@agent-skills
+/plugin install kapitan-core@moep90-skills
 ```
 
 ### Codex CLI
 
 ```bash
 codex plugin marketplace add Moep90/agent-skills
-codex plugin add kapitan-core@agent-skills
+codex plugin add kapitan-core@moep90-skills
 ```
 
 `codex plugin marketplace upgrade` fetches new versions. To stay on one release, add the

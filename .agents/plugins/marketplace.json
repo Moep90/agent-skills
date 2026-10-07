@@ -1,7 +1,7 @@
 {
-  "name": "agent-skills",
+  "name": "moep90-skills",
   "interface": {
-    "displayName": "Agent Skills"
+    "displayName": "Moep90 Skills"
   },
   "plugins": [
     {
