@@ -6,6 +6,16 @@ Agent plugins for Claude Code, Codex CLI, Cursor and OpenCode, versioned per plu
 |---|---|---|
 | `kapitan-core` | Skills for the Kapitan inventory model, input types, secret refs and compile debugging | see [CHANGELOG](plugins/kapitan-core/CHANGELOG.md) |
 | `kapitan-generators` | Skills for the kapicorp Kubernetes and Terraform generators, kadet authoring and project scaffolding | see [CHANGELOG](plugins/kapitan-generators/CHANGELOG.md) |
+| `arena` | Cross-model author and review loop: Claude writes and Codex reviews, or the reverse, against a frozen rubric | see [CHANGELOG](plugins/arena/CHANGELOG.md) |
+
+## Arena
+
+Invoke as `/arena:arena <task or path> [--author claude|codex] [--rubric code|skill|text]` in
+Claude Code (`/arena` in OpenCode, `$arena` in Codex CLI). It needs the `codex` and `claude`
+CLIs, logged in, and runs inside a git working tree.
+
+**Data note:** the CLIs Arena calls can read any file you can read, and everything they read is
+sent to OpenAI or Anthropic.
 
 ## Install
 
@@ -38,6 +48,7 @@ OpenCode reads skills from `~/.agents/skills`. Link each skill you want:
 ```bash
 git clone https://github.com/Moep90/agent-skills.git
 ln -s "$PWD/agent-skills/plugins/kapitan-core/skills/kapitan-inventory-model" ~/.agents/skills/
+ln -s "$PWD/agent-skills/plugins/arena/skills/arena" ~/.agents/skills/
 ```
 
 ## Versions and releases

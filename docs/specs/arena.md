@@ -1,7 +1,7 @@
 # Arena: cross-model author and review loop
 
 ```text
-Status: Draft
+Status: Approved
 Code: plugins/arena/
 Verified against: not yet (no implementation)
 ```
@@ -103,7 +103,7 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   older generation.
 
   - Test: tests/run.sh approved (AC-1, the stub records its arguments)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-1: The skill MUST be invocable as
   `arena <task or path> [--author claude|codex] [--rubric code|skill|text]`,
@@ -117,7 +117,7 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   prove wrong in use.
 
   - Test: tests/run.sh approved (AC-1)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-1b: A run on a path that already exists MUST start with a review; a
   run on a task MUST start with the author writing the target.
@@ -127,7 +127,7 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   sees nothing to change hit the ARENA-22 stop before any review.
 
   - Test: tests/run.sh approved (AC-1, first call is a review); manual: AC-8
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-2: The author and the reviewer of a run MUST come from different model
   families.
@@ -137,18 +137,18 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   who as a CLI process follows from the host, as described above.
 
   - Test: tests/run.sh approved (AC-1); manual: AC-8
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-3: A Codex reviewer MUST run as `codex exec --sandbox read-only`.
 
   - Test: tests/run.sh approved (AC-1, the stub records its arguments)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-4: A Codex author that is not the host MUST run as
   `codex exec --sandbox workspace-write`.
 
   - Test: manual: AC-8
-  - Since: not implemented
+  - Since: not met yet (manual AC-8 pending)
 
 - ARENA-4a: A Claude author that is not the host MUST run as
   `claude -p --tools Read,Grep,Glob,Edit,Write,Bash --allowedTools Read Grep Glob Edit Write 'Bash(git rm:*)' 'Bash(git mv:*)' --strict-mcp-config --no-session-persistence --permission-mode dontAsk`.
@@ -161,7 +161,7 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   this allowlist, `git mv`, `git rm` and Write ran and `touch` was denied.
 
   - Test: manual: AC-10
-  - Since: not implemented
+  - Since: not met yet (manual AC-10 pending)
 
 - ARENA-5: A Claude reviewer MUST run as
   `claude -p --tools Read,Grep,Glob --strict-mcp-config --no-session-persistence`
@@ -176,19 +176,19 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   Glob, Grep and Read.
 
   - Test: manual: AC-8
-  - Since: not implemented
+  - Since: not met yet (manual AC-8 pending)
 
 - ARENA-6: Every review MUST run in a fresh context: a new `codex exec` call or
   a new `claude -p` process. Session resume MUST NOT be used.
 
   - Test: tests/run.sh cap (AC-2, no `resume` argument across three calls)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-7: The host session MUST NOT judge the artifact's
   quality itself. It enforces the protocol and relays verdicts.
 
   - Test: tests/run.sh approved (AC-1, the reported verdict is the stub's)
-  - Since: not implemented
+  - Since: this change
 
 ## Rubrics
 
@@ -210,7 +210,7 @@ or a style guide.
   headless tests, which have no stdin, get past the confirmation.
 
   - Test: manual: AC-7; tests/run.sh approved (AC-1, no question asked)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-8a: Every run MUST have one target path, a file or a directory,
   confirmed by the user together with the rubric.
@@ -220,7 +220,7 @@ or a style guide.
   measure against this path.
 
   - Test: manual: AC-7, AC-8
-  - Since: not implemented
+  - Since: not met yet (manual AC-7, AC-8 pending)
 
 - ARENA-9: The rubric MUST NOT change after the first review of a run.
 
@@ -228,7 +228,7 @@ or a style guide.
   the round cap.
 
   - Test: none
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-10: For rubric `code`, the orchestrating session MUST run the
   project's tests and linter before each review and record the result in the
@@ -243,13 +243,14 @@ or a style guide.
   and the review proceeds.
 
   - Test: none
-  - Since: not implemented
+  - Since: this change
 
 ## Ledger and reviewer contract
 
 The ledger is a plain file in a run directory created with `mktemp -d`. The
 reviewer emits one line per finding with five fields. The first field is
-`new` for a new finding, or the ledger ID of the entry it repeats:
+`new` for a new finding, or the ledger ID of the entry it repeats. The fifth field runs to the end of the
+line and may contain `|`:
 
 ```text
 new | blocking | criterion: correct | src/x.py:42 | <problem and suggested fix>
@@ -284,7 +285,7 @@ and never edits the artifact.
   which the reviewer allocated IDs itself.
 
   - Test: tests/run.sh contract (AC-4, unknown-ID variant); manual: AC-9
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-11: Reviewer output MUST start with the line
   `VERDICT: APPROVED`, `VERDICT: REVISE` or `VERDICT: BLOCKED`, followed only
@@ -293,13 +294,13 @@ and never edits the artifact.
   `BLOCKED` means the reviewer needs a decision only the user can make.
 
   - Test: tests/run.sh contract (AC-4)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-11a: `VERDICT: APPROVED` together with a blocking finding MUST be
   treated as a contract violation under ARENA-21.
 
   - Test: tests/run.sh contract (AC-4)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-11b: `VERDICT: REVISE` without any blocking finding MUST be treated
   as a contract violation under ARENA-21.
@@ -308,7 +309,7 @@ and never edits the artifact.
   have no defined end.
 
   - Test: tests/run.sh contract (AC-4)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-12: A finding MUST be treated as `blocking` only if it names a rubric
   criterion and a location; any other finding is `minor`.
@@ -317,7 +318,7 @@ and never edits the artifact.
   preferences.
 
   - Test: none
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-13: Before the next review the author MUST mark every open blocking
   finding `fixed`, or `rejected` with a reason.
@@ -329,7 +330,7 @@ and never edits the artifact.
   session copies these into the ledger.
 
   - Test: manual: AC-7
-  - Since: not implemented
+  - Since: not met yet (manual AC-7 pending)
 
 ## Stop conditions
 
@@ -341,25 +342,25 @@ and never edits the artifact.
   retried.
 
   - Test: tests/run.sh cap (AC-2)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-15: A run MUST stop and report the artifact and the minor findings
   when a review returns `APPROVED` and no blocking finding is open.
 
   - Test: tests/run.sh approved (AC-1)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-16: A run MUST stop and hand over to the user when a review returns
   `BLOCKED`.
 
   - Test: tests/run.sh blocked (AC-6)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-17: A run MUST hand over to the user with the ledger when the third
   review still leaves a blocking finding open.
 
   - Test: tests/run.sh cap (AC-2)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-18: A run MUST hand over to the user immediately when a reviewer
   raises a finding again that the author rejected.
@@ -370,7 +371,7 @@ and never edits the artifact.
   in the loop and counts against ARENA-14.
 
   - Test: manual: AC-9
-  - Since: not implemented
+  - Since: not met yet (manual AC-9 pending)
 
 ## Failure handling
 
@@ -387,7 +388,7 @@ exception is a broken output contract, which is often transient.
   failure and the remedy; ARENA-24 does not apply.
 
   - Test: tests/run.sh preflight (AC-5)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-19a: As part of the preflight the skill MUST stop unless
   `git rev-parse --is-inside-work-tree` exits 0 and prints exactly `true`.
@@ -401,7 +402,7 @@ exception is a broken output contract, which is often transient.
   use case asks for it.
 
   - Test: tests/run.sh nogit (AC-5)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-20: An author or reviewer call (`codex exec` or `claude -p`) that
   exits non-zero or runs longer than ten minutes MUST stop the run without
@@ -420,14 +421,14 @@ exception is a broken output contract, which is often transient.
   [openai/codex](https://github.com/openai/codex), read for codex-cli 0.160.1
 
   - Test: tests/run.sh ratelimit (AC-3) (partial: a failing or hanging `claude -p` reviewer is not covered)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-21: A review that breaks the contract of ARENA-11, ARENA-11a or
   ARENA-11b MUST be repeated exactly once with a reminder of the contract; a
   second violation of the same review MUST stop the run.
 
   - Test: tests/run.sh contract (AC-4)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-22: A CLI author run that leaves the target unchanged MUST stop the
   run, unless it marks every open blocking finding `rejected`.
@@ -438,7 +439,7 @@ exception is a broken output contract, which is often transient.
   answer under ARENA-13 and goes to the next review.
 
   - Test: manual: AC-8
-  - Since: not implemented
+  - Since: not met yet (manual AC-8 pending)
 
 - ARENA-23: After a CLI author run, every detected change outside the
   target MUST be reported to the user with the list of files, without
@@ -457,7 +458,7 @@ exception is a broken output contract, which is often transient.
   Reverting could destroy work the user wants; the user decides.
 
   - Test: manual: AC-8
-  - Since: not implemented
+  - Since: not met yet (manual AC-8 pending)
 
 - ARENA-24: Every stop after the preflight MUST report the artifact path, the
   ledger path and the round number, and keep the run directory.
@@ -466,7 +467,7 @@ exception is a broken output contract, which is often transient.
   starts a new run on the current state.
 
   - Test: tests/run.sh cap (AC-2)
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-27: The skill MUST refuse to run when the host is Hermes Agent.
 
@@ -475,7 +476,7 @@ exception is a broken output contract, which is often transient.
   manual copy.
 
   - Test: manual: AC-12
-  - Since: not implemented
+  - Since: not met yet (manual AC-12 pending)
 
 ## Data exposure
 
@@ -492,7 +493,7 @@ content; only the user can judge what may leave the machine.
   or Anthropic.
 
   - Test: manual: read `plugins/arena/skills/arena/SKILL.md` frontmatter
-  - Since: not implemented
+  - Since: this change
 
 - ARENA-26: After the preflight and before the first author or reviewer
   call, the skill MUST ask the user to
@@ -500,7 +501,7 @@ content; only the user can judge what may leave the machine.
   `*.key`, `id_rsa*` or `credentials*`.
 
   - Test: none
-  - Since: not implemented
+  - Since: this change
 
 ## Verification
 
