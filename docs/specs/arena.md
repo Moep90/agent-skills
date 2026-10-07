@@ -2,7 +2,7 @@
 
 ```
 Status: Draft
-Code: skills/arena/, tests/
+Code: plugins/arena/
 Verified against: not yet (no implementation)
 ```
 
@@ -16,9 +16,10 @@ rates its own output more leniently than others do, and a reviewer that sees
 its earlier feedback addressed tends to raise its score whether or not the
 artifact improved.
 
-Arena automates that loop inside Claude Code. One model family writes, the
-other reviews in a fresh context against a fixed rubric, and the loop stops on
-an explicit verdict or hands over to the user.
+Arena automates that loop inside a coding agent (Claude Code, Codex CLI or
+OpenCode). One model family writes, the other reviews in a fresh context
+against a fixed rubric, and the loop stops on an explicit verdict or hands
+over to the user.
 
 ## Decisions
 
@@ -31,7 +32,8 @@ OpenAI's pricing page, October 2026) plus an unpublished weekly limit. A
 review round is one message, so three rounds per artifact fit comfortably. In
 the default direction code writing stays on the Claude subscription.
 
-DEC-2: Arena is one thin Claude Code skill that calls `codex exec` directly.
+DEC-2: Arena is one thin skill that calls `codex exec` and `claude -p`
+directly.
 OpenAI's `codex-plugin-cc` reviews only git changes and has a code-oriented
 prompt. Its optional review gate re-runs a review on every Claude stop, but
 has no round cap or verdict-based end and its own documentation warns that it
@@ -52,6 +54,16 @@ feedback; the cost is re-reading the artifact each round.
 DEC-5: Both directions ship in v1: Claude writes and Codex reviews, and Codex
 writes and a fresh headless Claude reviews.
 
+DEC-6: Arena runs on three hosts: Claude Code, Codex CLI and OpenCode. All
+three read the Agent Skills `SKILL.md` format. Hermes Agent is excluded.
+Hermes also supports cloud providers, but this project assumes it is used
+with local models so that the content it processes stays on the machine, and
+Arena exists to send content to OpenAI and Anthropic. A variant with two
+local model families would be a different product.
+
+Distribution, manifests and versioning are specified in
+[marketplace.md](marketplace.md).
+
 Related: [OpenAI Codex pricing](https://learn.chatgpt.com/docs/pricing),
 [OpenAI Terms of Use](https://openai.com/policies/terms-of-use/),
 [codex-plugin-cc](https://github.com/openai/codex-plugin-cc),
@@ -61,10 +73,18 @@ Related: [OpenAI Codex pricing](https://learn.chatgpt.com/docs/pricing),
 
 ## Invocation and roles
 
-The skill lives in `skills/arena/SKILL.md` in this repository and is installed
-by symlinking `skills/arena` to `$HOME/.claude/skills/arena`. It has no script
-and no runtime dependency apart from the `codex` and `git` CLIs; it runs only
-inside a git working tree (ARENA-19a).
+The skill lives in `plugins/arena/skills/arena/SKILL.md`; installation per host
+is specified in [marketplace.md](marketplace.md). It has no script and no
+runtime dependency apart from `git` and the CLIs a run calls (`codex`,
+`claude`); it runs only inside a git working tree (ARENA-19a).
+
+The host is the agent that runs the skill and orchestrates the loop. The
+author is the host session itself when `--author` names the host's own model
+family; otherwise the author is a CLI process of the named family. The
+reviewer is always a fresh CLI process of the other family. On Claude Code
+with the default author, the session writes and `codex exec` reviews; on
+Codex CLI the mirror image holds. On OpenCode the host model's family decides;
+when it is neither Claude nor GPT, the author always runs as a CLI process.
 
 - ARENA-1a: Every Codex call MUST set model and reasoning effort explicitly
   with `-m <model> -c model_reasoning_effort=<effort>`, using the values in
@@ -86,8 +106,12 @@ inside a git working tree (ARENA-19a).
   - Since: not implemented
 
 - ARENA-1: The skill MUST be invocable as
-  `/arena <task or path> [--author claude|codex] [--rubric code|skill|text]`,
-  with `--author` defaulting to `claude`.
+  `arena <task or path> [--author claude|codex] [--rubric code|skill|text]`,
+  through the host's skill invocation: `/arena:arena` in Claude Code when
+  installed as a plugin (Claude Code namespaces plugin skills), `/arena` in
+  Claude Code for a standalone skill and in OpenCode, `$arena` in Codex CLI. `--author` defaults to the host model's family. When
+  the host model is neither Claude nor GPT and `--author` is missing, the
+  skill MUST stop before the preflight and ask for it.
 
   The round cap is not a flag (ARENA-14). A flag is added once three rounds
   prove wrong in use.
@@ -99,7 +123,7 @@ inside a git working tree (ARENA-19a).
   run on a task MUST start with the author writing the target.
 
   An existing artifact is what the user wants judged, so round 1 reviews it
-  as it is. Starting with the author would also make a Codex author that
+  as it is. Starting with the author would also make a CLI author that
   sees nothing to change hit the ARENA-22 stop before any review.
 
   - Test: tests/run.sh approved (AC-1, first call is a review); manual: AC-8
@@ -108,8 +132,9 @@ inside a git working tree (ARENA-19a).
 - ARENA-2: The author and the reviewer of a run MUST come from different model
   families.
 
-  With `--author claude` the Claude Code session writes and Codex reviews.
-  With `--author codex` Codex writes and a fresh headless Claude reviews.
+  With `--author claude` Claude writes and Codex reviews; with
+  `--author codex` Codex writes and Claude reviews. Who runs in-session and
+  who as a CLI process follows from the host, as described above.
 
   - Test: tests/run.sh approved (AC-1); manual: AC-8
   - Since: not implemented
@@ -119,9 +144,23 @@ inside a git working tree (ARENA-19a).
   - Test: tests/run.sh approved (AC-1, the stub records its arguments)
   - Since: not implemented
 
-- ARENA-4: A Codex author MUST run as `codex exec --sandbox workspace-write`.
+- ARENA-4: A Codex author that is not the host MUST run as
+  `codex exec --sandbox workspace-write`.
 
   - Test: manual: AC-8
+  - Since: not implemented
+
+- ARENA-4a: A Claude author that is not the host MUST run as
+  `claude -p --tools Read,Grep,Glob,Edit,Write,Bash --allowedTools Read Grep Glob Edit Write 'Bash(git rm:*)' 'Bash(git mv:*)' --strict-mcp-config --no-session-persistence --permission-mode dontAsk`.
+
+  The author needs to delete and rename files for ordinary code revisions,
+  which Edit and Write cannot do, so Bash is available but only `git rm` and
+  `git mv` are allowed. Probes with Claude Code 2.1.292 in a fresh git
+  directory: with `--permission-mode acceptEdits` an unlisted `touch` still
+  ran, because that mode approves simple file commands; with `dontAsk` and
+  this allowlist, `git mv`, `git rm` and Write ran and `touch` was denied.
+
+  - Test: manual: AC-10
   - Since: not implemented
 
 - ARENA-5: A Claude reviewer MUST run as
@@ -145,7 +184,7 @@ inside a git working tree (ARENA-19a).
   - Test: tests/run.sh cap (AC-2, no `resume` argument across three calls)
   - Since: not implemented
 
-- ARENA-7: The orchestrating Claude session MUST NOT judge the artifact's
+- ARENA-7: The host session MUST NOT judge the artifact's
   quality itself. It enforces the protocol and relays verdicts.
 
   - Test: tests/run.sh approved (AC-1, the reported verdict is the stub's)
@@ -284,7 +323,7 @@ and never edits the artifact.
   finding `fixed`, or `rejected` with a reason.
 
   Findings are input, not truth. A rejection with a reason is a valid answer
-  and goes to the reviewer in the next ledger. A Codex author receives the
+  and goes to the reviewer in the next ledger. A CLI author receives the
   ledger with its task and ends its reply with one line per open blocking
   finding, `<ID> | fixed` or `<ID> | rejected | <reason>`; the orchestrating
   session copies these into the ledger.
@@ -338,8 +377,11 @@ and never edits the artifact.
 Failures stop the run and are reported; Arena never retries in a loop. The one
 exception is a broken output contract, which is often transient.
 
-- ARENA-19: Before any other work the skill MUST run `codex login status` and
-  stop with the remedy command if it fails.
+- ARENA-19: Before any other work the skill MUST check the login of every CLI
+  the run will call and stop with the remedy command if one is not logged in.
+
+  `codex login status` must exit 0; `claude auth status` must exit 0 and
+  report `"loggedIn": true` in its JSON output.
 
   No run directory exists at this point, so this stop reports only the
   failure and the remedy; ARENA-24 does not apply.
@@ -387,7 +429,7 @@ exception is a broken output contract, which is often transient.
   - Test: tests/run.sh contract (AC-4)
   - Since: not implemented
 
-- ARENA-22: A Codex author run that leaves the target unchanged MUST stop the
+- ARENA-22: A CLI author run that leaves the target unchanged MUST stop the
   run, unless it marks every open blocking finding `rejected`.
 
   Detected by comparing a content hash of the target path (ARENA-8a) before
@@ -398,11 +440,11 @@ exception is a broken output contract, which is often transient.
   - Test: manual: AC-8
   - Since: not implemented
 
-- ARENA-23: After a Codex author run, every detected change outside the
+- ARENA-23: After a CLI author run, every detected change outside the
   target MUST be reported to the user with the list of files, without
   reverting them.
 
-  Detection: a marker file is created right before the Codex call. Afterwards
+  Detection: a marker file is created right before the author call. Afterwards
   every file below the working directory, ignored files included and `.git`
   excluded, that is newer than the marker and outside the target counts as
   changed. Deletions are found by comparing
@@ -426,22 +468,34 @@ exception is a broken output contract, which is often transient.
   - Test: tests/run.sh cap (AC-2)
   - Since: not implemented
 
+- ARENA-27: The skill MUST refuse to run when the host is Hermes Agent.
+
+  The skill states this as its first instruction. Arena is also not
+  published to Hermes' skill directory, so the refusal only matters for a
+  manual copy.
+
+  - Test: manual: AC-12
+  - Since: not implemented
+
 ## Data exposure
 
 The Codex sandbox limits writes, not reads: in `read-only` and
 `workspace-write` mode Codex can read any file the user can read, not only the
-working directory. Whatever it actually reads enters the model context and
-goes to OpenAI. In practice it reads what the prompt points to and what it
+working directory. `claude -p` with `Read`, `Grep` and `Glob` is not confined
+to the working directory either. Whatever either CLI actually reads enters the
+model context and goes to OpenAI or Anthropic. In practice it reads what the prompt points to and what it
 searches for, which is mostly the working directory. Arena does not filter
 content; only the user can judge what may leave the machine.
 
-- ARENA-25: The skill description MUST state that Codex can read any file
-  the user can read and that everything it reads is sent to OpenAI.
+- ARENA-25: The skill description MUST state that the CLIs it calls can read
+  any file the user can read and that everything they read is sent to OpenAI
+  or Anthropic.
 
-  - Test: manual: read `skills/arena/SKILL.md` frontmatter
+  - Test: manual: read `plugins/arena/skills/arena/SKILL.md` frontmatter
   - Since: not implemented
 
-- ARENA-26: Before the first `codex exec` call, the skill MUST ask the user to
+- ARENA-26: After the preflight and before the first author or reviewer
+  call, the skill MUST ask the user to
   confirm when the working directory contains files matching `.env*`, `*.pem`,
   `*.key`, `id_rsa*` or `credentials*`.
 
@@ -453,10 +507,13 @@ content; only the user can judge what may leave the machine.
 Arena is a prompt, so its correctness is protocol compliance. Two layers check
 it.
 
-Layer 1 runs without Codex quota. A stub `tests/bin/codex` answers
+Paths in `Test:` lines and in this section are relative to `plugins/arena/`.
+
+Layer 1 runs without Codex quota, on the Claude Code host only. A stub
+`tests/bin/codex` answers
 `login status` and `exec` from canned responses per scenario, and logs every
 call with its arguments. `tests/run.sh <scenario>` creates a throwaway git
-directory whose `.claude/skills/arena` links to `skills/arena`, so the test
+directory whose `.claude/skills/arena` links to `plugins/arena/skills/arena`, so the test
 exercises the repository's skill rather than whatever is installed. It then
 runs `claude -p "/arena <fixture> --rubric <type>" --permission-mode bypassPermissions
 < /dev/null` there with `tests/bin` first on `PATH` and asserts on the stub's
@@ -468,8 +525,9 @@ project-level skill is invoked by its slash command in `claude -p`, its Bash
 calls resolve `codex` through the inherited `PATH`, and it can start further
 processes. Without `< /dev/null` the run waits three seconds for stdin.
 
-Layer 2 is manual with the real Codex CLI. It covers what the stub cannot
-force: review quality, the Codex author direction and the reopen hand-over.
+Layer 2 is manual with the real CLIs. It covers what the stub cannot force:
+review quality, the Codex author direction, the reopen hand-over and the
+Codex CLI and OpenCode hosts.
 Neither layer proves the reviews are good; AC-7 and daily use are the only
 evidence for that.
 
@@ -514,6 +572,22 @@ evidence for that.
   the reviewer will dispute. The run hands over after that review instead of
   starting another.
   Check: manual
+- AC-10 (ARENA-1, ARENA-2, ARENA-4a, ARENA-5, ARENA-19): on the Codex CLI host,
+  `$arena <path> --rubric text` reviews with `claude -p` and the restricted
+  tool set; `$arena "<task>" --author claude --rubric text` writes the target
+  with the restricted Claude author; a follow-up task that requires deleting
+  and renaming a file under the target completes with `git rm` and `git mv`.
+  The preflight checks `claude auth status`.
+  Check: manual
+- AC-11 (ARENA-1, ARENA-2): on OpenCode with a Claude model,
+  `/arena <path> --rubric text` runs with the host as author and `codex exec`
+  as reviewer and ends with a verdict. With a model that is neither Claude nor
+  GPT, the same call without `--author` stops and asks for it; with
+  `--author codex` it runs Codex as CLI author and Claude as reviewer.
+  Check: manual
+- AC-12 (ARENA-27): with the skill copied into Hermes Agent's skill directory,
+  invoking it produces a refusal and no CLI call.
+  Check: manual
 
 ## Open questions
 
@@ -525,12 +599,11 @@ Verification and ARENA-20.
 
 | Path | Purpose |
 |---|---|
-| `skills/arena/SKILL.md` | The skill: protocol, rubrics, reviewer prompt, ledger format |
-| `$HOME/.claude/skills/arena` | Symlink to `skills/arena` |
-| `tests/bin/codex` | Stub CLI: canned responses per scenario, call log with arguments |
-| `tests/scenarios/<name>/` | Canned stub responses and exit codes for `approved`, `cap`, `ratelimit`, `contract` (four variants), `preflight`, `nogit` (run outside git), `blocked` |
-| `tests/run.sh` | Runs one scenario headless in a throwaway git directory linking `.claude/skills/arena` to `skills/arena`, asserts on the call log and output |
-| `tests/fixtures/skill-contradiction/SKILL.md` | Skill with a planted contradiction for AC-7 |
+| `plugins/arena/skills/arena/SKILL.md` | The skill: host rules, protocol, rubrics, reviewer prompt, ledger format |
+| `plugins/arena/tests/bin/codex` | Stub CLI: canned responses per scenario, call log with arguments |
+| `plugins/arena/tests/scenarios/<name>/` | Canned stub responses and exit codes for `approved`, `cap`, `ratelimit`, `contract` (four variants), `preflight`, `nogit` (run outside git), `blocked` |
+| `plugins/arena/tests/run.sh` | Runs one scenario headless in a throwaway git directory linking `.claude/skills/arena` to the skill, asserts on the call log and output |
+| `plugins/arena/tests/fixtures/skill-contradiction/SKILL.md` | Skill with a planted contradiction for AC-7 |
 
 | Value | Setting |
 |---|---|
