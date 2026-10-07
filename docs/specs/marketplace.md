@@ -129,7 +129,12 @@ has at least one skill, so Arena joins with its implementation.
 
 - MKT-13: Every skill MUST pass `scripts/validate_skills.py`: the frontmatter
   `name` matches the directory, `description` is present and under 1024
-  characters, and every relative reference link resolves.
+  characters, `category` is one of the categories the script lists, every
+  relative reference link resolves, and `evals/evals.json` names the skill
+  and has at least one case with a prompt and expectations.
+
+  The category list and the evals requirement come with the imported script.
+  Arena adds its category to the list when it joins the registry.
 
   - Test: CI job `quality` (AC-1)
   - Since: not implemented
