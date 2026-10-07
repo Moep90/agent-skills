@@ -148,7 +148,7 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   `codex exec --sandbox workspace-write`.
 
   - Test: manual: AC-8
-  - Since: not met yet (manual AC-8 pending)
+  - Since: this change
 
 - ARENA-4a: A Claude author that is not the host MUST run as
   `claude -p --tools Read,Grep,Glob,Edit,Write,Bash --allowedTools Read Grep Glob Edit Write 'Bash(git rm:*)' 'Bash(git mv:*)' --strict-mcp-config --no-session-persistence --permission-mode dontAsk`.
@@ -161,7 +161,7 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   this allowlist, `git mv`, `git rm` and Write ran and `touch` was denied.
 
   - Test: manual: AC-10
-  - Since: not met yet (manual AC-10 pending)
+  - Since: this change
 
 - ARENA-5: A Claude reviewer MUST run as
   `claude -p --tools Read,Grep,Glob --strict-mcp-config --no-session-persistence`
@@ -176,7 +176,7 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   Glob, Grep and Read.
 
   - Test: manual: AC-8
-  - Since: not met yet (manual AC-8 pending)
+  - Since: this change
 
 - ARENA-6: Every review MUST run in a fresh context: a new `codex exec` call or
   a new `claude -p` process. Session resume MUST NOT be used.
@@ -220,7 +220,7 @@ or a style guide.
   measure against this path.
 
   - Test: manual: AC-7, AC-8
-  - Since: not met yet (manual AC-7, AC-8 pending)
+  - Since: this change
 
 - ARENA-9: The rubric MUST NOT change after the first review of a run.
 
@@ -330,7 +330,7 @@ and never edits the artifact.
   session copies these into the ledger.
 
   - Test: manual: AC-7
-  - Since: not met yet (manual AC-7 pending)
+  - Since: this change
 
 ## Stop conditions
 
@@ -371,7 +371,7 @@ and never edits the artifact.
   in the loop and counts against ARENA-14.
 
   - Test: manual: AC-9
-  - Since: not met yet (manual AC-9 pending)
+  - Since: this change
 
 ## Failure handling
 
@@ -439,7 +439,7 @@ exception is a broken output contract, which is often transient.
   answer under ARENA-13 and goes to the next review.
 
   - Test: manual: AC-8
-  - Since: not met yet (manual AC-8 pending)
+  - Since: this change
 
 - ARENA-23: After a CLI author run, every detected change outside the
   target MUST be reported to the user with the list of files, without
@@ -458,7 +458,7 @@ exception is a broken output contract, which is often transient.
   Reverting could destroy work the user wants; the user decides.
 
   - Test: manual: AC-8
-  - Since: not met yet (manual AC-8 pending)
+  - Since: this change
 
 - ARENA-24: Every stop after the preflight MUST report the artifact path, the
   ledger path and the round number, and keep the run directory.
