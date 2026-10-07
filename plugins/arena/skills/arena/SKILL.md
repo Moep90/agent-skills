@@ -172,11 +172,19 @@ in the ledger to `status: fixed | <what changed>` or `status: rejected | <reason
      `timeout 590 codex exec -m gpt-6.1-sol -c model_reasoning_effort=medium --sandbox workspace-write -o "$RUN/author-$R.md" - < "$RUN/author-$R.prompt" 2> "$RUN/author-$R.err"`
    - Claude author:
      `timeout 590 claude -p --tools Read,Grep,Glob,Edit,Write,Bash --allowedTools Read Grep Glob Edit Write 'Bash(git rm:*)' 'Bash(git mv:*)' --strict-mcp-config --no-session-persistence --permission-mode dontAsk < "$RUN/author-$R.prompt" > "$RUN/author-$R.md" 2> "$RUN/author-$R.err"`
-   A non-zero exit stops the run exactly like a failed review call.
-4. Read the author's disposition lines at the end of its reply, `<ID> | fixed` or
+4. Find changes outside the target, also after a non-zero exit:
+
+   ```bash
+   find . -path ./.git -prune -o -type f -newer "$RUN/marker-$R" -print
+   git status --porcelain --ignored --untracked-files=all | diff "$RUN/status-before-$R" - | grep '^[<>]'
+   ```
+
+   Every listed file outside the target goes into the stop report. Never revert them.
+5. A non-zero exit stops the run exactly like a failed review call.
+6. Read the author's disposition lines at the end of its reply, `<ID> | fixed` or
    `<ID> | rejected | <reason>`, and update the ledger. A finding without a disposition
    stays `open`.
-5. Compute the hash again and compare:
+7. Compute the hash again and compare:
 
    ```bash
    find "$TARGET" -type f -print0 2>/dev/null | sort -z | xargs -0 sha256sum 2>/dev/null | sha256sum > "$RUN/hash-after-$R"
@@ -185,14 +193,6 @@ in the ledger to `status: fixed | <what changed>` or `status: rejected | <reason
 
    If `cmp` exits 0 the target is unchanged: stop (section 8), unless at least one blocking
    finding was open before this author step and every one of them is now `rejected`.
-6. Find changes outside the target:
-
-   ```bash
-   find . -path ./.git -prune -o -type f -newer "$RUN/marker-$R" -print
-   git status --porcelain --ignored --untracked-files=all | diff "$RUN/status-before-$R" - | grep '^[<>]'
-   ```
-
-   Every listed file outside the target goes into the final report. Never revert them.
 
 Then do the next review step.
 
