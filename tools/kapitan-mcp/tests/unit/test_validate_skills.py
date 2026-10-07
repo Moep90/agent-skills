@@ -69,5 +69,8 @@ def test_empty_expect_list_is_flagged(tmp_path: Path) -> None:
 
 
 def test_the_committed_skills_all_validate() -> None:
-    skills = Path(validate_skills.__file__).resolve().parent.parent / "skills"
-    assert validate_skills.main(["validate_skills.py", str(skills)]) == 0
+    plugins = Path(validate_skills.__file__).resolve().parent.parent / "plugins"
+    skill_dirs = sorted(plugins.glob("*/skills"))
+    assert skill_dirs
+    for skills in skill_dirs:
+        assert validate_skills.main(["validate_skills.py", str(skills)]) == 0, skills

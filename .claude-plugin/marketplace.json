@@ -1,10 +1,10 @@
 {
-  "name": "agent-toolkit-for-kapitan",
+  "name": "agent-skills",
   "owner": {
     "name": "Moep90"
   },
   "metadata": {
-    "description": "Agent plugins that make AI coding agents good at Kapitan projects."
+    "description": "Agent plugins for Claude Code, Codex CLI, Cursor and OpenCode."
   },
   "plugins": [
     {

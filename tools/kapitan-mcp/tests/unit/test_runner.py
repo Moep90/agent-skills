@@ -17,12 +17,12 @@ from kapitan_mcp.runner import CommandResult, run, scrub_env
 
 
 def test_scrub_env__drops_cloud_credentials_by_default() -> None:
-    source = {"PATH": "/usr/bin", "HOME": "/home/x", "AWS_SECRET_ACCESS_KEY": "shh"}
+    source = {"PATH": "/usr/bin", "HOME": "/home/<user>", "AWS_SECRET_ACCESS_KEY": "shh"}
 
     result = scrub_env(source)
 
     assert result["PATH"] == "/usr/bin"
-    assert result["HOME"] == "/home/x"
+    assert result["HOME"] == "/home/<user>"
     assert "AWS_SECRET_ACCESS_KEY" not in result
 
 

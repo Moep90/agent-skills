@@ -2,7 +2,7 @@
 """Validate skill packages: frontmatter, description length, reference links, and evals.
 
 Stdlib only. Exits non-zero on the first batch of problems, printing each. Run from the
-repo root or pass a skills directory.
+repo root (checks plugins/*/skills/*) or pass one skills directory.
 """
 
 from __future__ import annotations
@@ -111,13 +111,17 @@ def validate_evals(skill_dir: Path) -> list[str]:
 
 
 def main(argv: list[str]) -> int:
-    skills_root = Path(argv[1]) if len(argv) > 1 else Path("skills")
-    if not skills_root.is_dir():
-        print(f"no skills directory at {skills_root}", file=sys.stderr)
-        return 1
+    if len(argv) > 1:
+        skills_root = Path(argv[1])
+        if not skills_root.is_dir():
+            print(f"no skills directory at {skills_root}", file=sys.stderr)
+            return 1
+        skills = sorted(d for d in skills_root.iterdir() if (d / "SKILL.md").exists())
+    else:
+        # Default: every skill of every plugin, plugins/<name>/skills/<skill>/SKILL.md.
+        skills = sorted(p.parent for p in Path("plugins").glob("*/skills/*/SKILL.md"))
 
     all_problems: list[str] = []
-    skills = sorted(d for d in skills_root.iterdir() if (d / "SKILL.md").exists())
     for skill_dir in skills:
         all_problems.extend(validate_skill(skill_dir))
 

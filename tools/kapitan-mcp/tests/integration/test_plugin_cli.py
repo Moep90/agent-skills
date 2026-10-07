@@ -66,7 +66,7 @@ def test_codex_marketplace_lists_our_plugins(tmp_path: Path) -> None:
             "plugin",
             "list",
             "--marketplace",
-            "agent-toolkit-for-kapitan",
+            "agent-skills",
             "--available",
             "--json",
         ],

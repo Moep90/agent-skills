@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the plugin manifests and skill bundles from one registry.
+"""Generate the marketplace and plugin manifests from one registry, and check versions.
 
 Every plugin is described once in ``PLUGINS`` below. From that we generate:
 
@@ -7,50 +7,51 @@ Every plugin is described once in ``PLUGINS`` below. From that we generate:
   repo: ``.claude-plugin/``, ``.cursor-plugin/``, and ``.agents/plugins/`` (Codex);
 - the per-plugin manifests each client reads: ``.claude-plugin/plugin.json``,
   ``.cursor-plugin/plugin.json``, ``.codex-plugin/plugin.json``;
-- the skill bundles: skills live once under ``skills/`` and are copied into each plugin
-  (copied, not symlinked, so bundles work on Windows).
+- ``plugins/<name>/.mcp.json`` for a plugin with an MCP server, pinned to the plugin's
+  release tag so a plugin version always runs the server code it was released with.
 
-The MCP server command (and its git URL) lives in exactly one hand-written file per plugin,
-``plugins/<name>/.mcp.json``; the manifests only reference it with ``mcpServers``. So the
-git URL is never duplicated.
+Skills live only in ``plugins/<name>/skills/``; nothing is copied.
 
-Run without arguments to sync; run with ``--check`` to fail on drift (used in CI). Stdlib
-only.
+Usage (stdlib only):
+
+- no arguments: write all generated files;
+- ``--check``: fail on drift, a non-SemVer version, or a version without changelog section;
+- ``--check-bump <ref>``: fail when a plugin's files changed since the merge base with
+  ``<ref>`` but its version is not higher than the version on ``<ref>``.
 """
 
 from __future__ import annotations
 
-import filecmp
 import json
-import shutil
+import re
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SKILLS = ROOT / "skills"
-PLUGINS_DIR = ROOT / "plugins"
+PLUGINS_DIR_NAME = "plugins"
 
-# No manifest version field: the project ships rolling from main. Clients fall back to the
-# git commit SHA for update detection, so every commit counts as a new version.
-REPO_URL = "https://github.com/Moep90/agent-toolkit-for-kapitan"
-MARKET_NAME = "agent-toolkit-for-kapitan"
-MARKET_DESCRIPTION = "Agent plugins that make AI coding agents good at Kapitan projects."
-MARKET_DISPLAY = "Agent Toolkit for Kapitan"
+REPO_URL = "https://github.com/Moep90/agent-skills"
+MARKET_NAME = "agent-skills"
+MARKET_DESCRIPTION = "Agent plugins for Claude Code, Codex CLI, Cursor and OpenCode."
+MARKET_DISPLAY = "Agent Skills"
 OWNER = "Moep90"
-AUTHOR = "kapicorp"
 LICENSE = "Apache-2.0"
-CATEGORY = "devops"  # Claude/Cursor marketplaces
-CATEGORY_TITLE = "DevOps"  # Codex/agents marketplace
 
-# The one source of truth for every plugin. Descriptions are echoed into all manifests
-# below; edit them here, then run this script.
+_SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+
+# The one source of truth for every plugin. Edit here, then run this script.
 PLUGINS: dict[str, dict[str, object]] = {
     "kapitan-core": {
+        "version": "0.1.0",
         "displayName": "Kapitan Core",
         "description": (
             "Kapitan MCP server plus core skills: the inventory model, secret refs, and "
             "compile debugging."
         ),
+        "author": "kapicorp",
+        "category": "devops",
+        "categoryTitle": "DevOps",
         "keywords": [
             "kapitan",
             "inventory",
@@ -63,20 +64,23 @@ PLUGINS: dict[str, dict[str, object]] = {
             "config-management",
             "gitops",
         ],
-        "has_mcp": True,
-        "skills": [
-            "kapitan-inventory-model",
-            "kapitan-input-types",
-            "kapitan-secrets-refs",
-            "kapitan-debugging-compile",
-        ],
+        "mcp": {
+            "server": "kapitan",
+            "path": "tools/kapitan-mcp",
+            "entrypoint": "kapitan-mcp-server",
+            "with": ["kapitan"],
+        },
     },
     "kapitan-generators": {
+        "version": "0.1.0",
         "displayName": "Kapitan Generators",
         "description": (
             "Skills for the kapicorp Kubernetes and Terraform generators, kadet authoring, "
             "and project scaffolding."
         ),
+        "author": "kapicorp",
+        "category": "devops",
+        "categoryTitle": "DevOps",
         "keywords": [
             "kapitan",
             "kadet",
@@ -87,19 +91,13 @@ PLUGINS: dict[str, dict[str, object]] = {
             "manifests",
             "config-management",
         ],
-        "has_mcp": False,
-        "skills": [
-            "kapitan-kubernetes-generator",
-            "kapitan-terraform-generator",
-            "kapitan-helm-input",
-            "kapitan-omegaconf-resolvers",
-            "kapitan-authoring-generator",
-            "kapitan-generator-wiring",
-            "kapitan-writing-kadet",
-            "kapitan-project-scaffolding",
-        ],
+        "mcp": None,
     },
 }
+
+
+def _tag(name: str, version: str) -> str:
+    return f"{name}--v{version}"
 
 
 def _claude_marketplace() -> dict[str, object]:
@@ -110,9 +108,9 @@ def _claude_marketplace() -> dict[str, object]:
         "plugins": [
             {
                 "name": name,
-                "source": f"./plugins/{name}",
+                "source": f"./{PLUGINS_DIR_NAME}/{name}",
                 "description": p["description"],
-                "category": CATEGORY,
+                "category": p["category"],
                 "keywords": p["keywords"],
             }
             for name, p in PLUGINS.items()
@@ -126,7 +124,11 @@ def _cursor_marketplace() -> dict[str, object]:
         "owner": {"name": OWNER},
         "metadata": {"description": MARKET_DESCRIPTION},
         "plugins": [
-            {"name": name, "source": f"./plugins/{name}", "description": p["description"]}
+            {
+                "name": name,
+                "source": f"./{PLUGINS_DIR_NAME}/{name}",
+                "description": p["description"],
+            }
             for name, p in PLUGINS.items()
         ],
     }
@@ -139,11 +141,11 @@ def _agents_marketplace() -> dict[str, object]:
         "plugins": [
             {
                 "name": name,
-                "source": {"source": "local", "path": f"./plugins/{name}"},
+                "source": {"source": "local", "path": f"./{PLUGINS_DIR_NAME}/{name}"},
                 "policy": {"installation": "AVAILABLE"},
-                "category": CATEGORY_TITLE,
+                "category": p["categoryTitle"],
             }
-            for name in PLUGINS
+            for name, p in PLUGINS.items()
         ],
     }
 
@@ -151,17 +153,23 @@ def _agents_marketplace() -> dict[str, object]:
 def _claude_plugin(name: str, p: dict[str, object]) -> dict[str, object]:
     return {
         "name": name,
+        "version": p["version"],
         "description": p["description"],
-        "author": {"name": AUTHOR},
+        "author": {"name": p["author"]},
+        "homepage": REPO_URL,
+        "repository": REPO_URL,
+        "license": LICENSE,
+        "keywords": p["keywords"],
     }
 
 
 def _cursor_plugin(name: str, p: dict[str, object]) -> dict[str, object]:
     manifest: dict[str, object] = {
         "name": name,
+        "version": p["version"],
         "displayName": p["displayName"],
         "description": p["description"],
-        "author": {"name": AUTHOR},
+        "author": {"name": p["author"]},
         "homepage": REPO_URL,
         "repository": REPO_URL,
         "license": LICENSE,
@@ -169,18 +177,19 @@ def _cursor_plugin(name: str, p: dict[str, object]) -> dict[str, object]:
         "keywords": p["keywords"],
         "skills": "./skills/",
     }
-    if p["has_mcp"]:
+    if p["mcp"]:
         manifest["mcpServers"] = "./.mcp.json"
     return manifest
 
 
 def _codex_plugin(name: str, p: dict[str, object]) -> dict[str, object]:
-    has_mcp = bool(p["has_mcp"])
-    short = "Kapitan agent plugin with skills" + (" and an MCP server" if has_mcp else "")
+    has_mcp = bool(p["mcp"])
+    short = "Agent plugin with skills" + (" and an MCP server" if has_mcp else "")
     manifest: dict[str, object] = {
         "name": name,
+        "version": p["version"],
         "description": p["description"],
-        "author": {"name": AUTHOR, "url": REPO_URL},
+        "author": {"name": p["author"], "url": REPO_URL},
         "homepage": REPO_URL,
         "repository": REPO_URL,
         "license": LICENSE,
@@ -193,48 +202,75 @@ def _codex_plugin(name: str, p: dict[str, object]) -> dict[str, object]:
         "displayName": p["displayName"],
         "shortDescription": short,
         "longDescription": p["description"],
-        "developerName": AUTHOR,
-        "category": CATEGORY_TITLE,
+        "developerName": p["author"],
+        "category": p["categoryTitle"],
         "capabilities": ["Read", "Write"] if has_mcp else ["Read"],
         "websiteURL": REPO_URL,
     }
     return manifest
 
 
-def _manifests() -> dict[Path, dict[str, object]]:
-    """Map every generated manifest path to its content."""
+def _mcp_config(name: str, p: dict[str, object]) -> dict[str, object]:
+    mcp = p["mcp"]
+    if not isinstance(mcp, dict):
+        raise TypeError(f"{name}: mcp must be a mapping")
+    source = f"git+{REPO_URL}.git@{_tag(name, str(p['version']))}#subdirectory={mcp['path']}"
+    args: list[str] = []
+    for extra in mcp["with"]:
+        args += ["--with", extra]
+    args += ["--from", source, mcp["entrypoint"]]
+    return {"mcpServers": {mcp["server"]: {"command": "uvx", "args": args}}}
+
+
+def _manifests(root: Path = ROOT) -> dict[Path, dict[str, object]]:
+    """Map every generated manifest and marketplace path to its content."""
     files: dict[Path, dict[str, object]] = {
-        ROOT / ".claude-plugin" / "marketplace.json": _claude_marketplace(),
-        ROOT / ".cursor-plugin" / "marketplace.json": _cursor_marketplace(),
-        ROOT / ".agents" / "plugins" / "marketplace.json": _agents_marketplace(),
+        root / ".claude-plugin" / "marketplace.json": _claude_marketplace(),
+        root / ".cursor-plugin" / "marketplace.json": _cursor_marketplace(),
+        root / ".agents" / "plugins" / "marketplace.json": _agents_marketplace(),
     }
     for name, p in PLUGINS.items():
-        base = PLUGINS_DIR / name
+        base = root / PLUGINS_DIR_NAME / name
         files[base / ".claude-plugin" / "plugin.json"] = _claude_plugin(name, p)
         files[base / ".cursor-plugin" / "plugin.json"] = _cursor_plugin(name, p)
         files[base / ".codex-plugin" / "plugin.json"] = _codex_plugin(name, p)
     return files
 
 
+def _mcp_files(root: Path = ROOT) -> dict[Path, dict[str, object]]:
+    return {
+        root / PLUGINS_DIR_NAME / name / ".mcp.json": _mcp_config(name, p)
+        for name, p in PLUGINS.items()
+        if p["mcp"]
+    }
+
+
 def _render(content: dict[str, object]) -> str:
     return json.dumps(content, indent=2) + "\n"
 
 
-def _trees_differ(a: Path, b: Path) -> bool:
-    if not b.exists():
-        return True
-    cmp = filecmp.dircmp(a, b)
-    if cmp.left_only or cmp.right_only or cmp.diff_files or cmp.funny_files:
-        return True
-    return any(_trees_differ(a / sub, b / sub) for sub in cmp.common_dirs)
-
-
-def sync(check: bool) -> int:
+def _version_problems(root: Path = ROOT) -> list[str]:
     problems: list[str] = []
+    for name, p in PLUGINS.items():
+        version = str(p["version"])
+        if not _SEMVER.match(version):
+            problems.append(f"{name}: version '{version}' is not MAJOR.MINOR.PATCH")
+        changelog = root / PLUGINS_DIR_NAME / name / "CHANGELOG.md"
+        heading = re.compile(rf"^## {re.escape(version)}\s*$", re.MULTILINE)
+        if not changelog.exists() or not heading.search(changelog.read_text()):
+            problems.append(f"{name}: CHANGELOG.md has no '## {version}' section")
+        skills = root / PLUGINS_DIR_NAME / name / "skills"
+        if not any(skills.glob("*/SKILL.md")):
+            problems.append(f"{name}: no skills under {PLUGINS_DIR_NAME}/{name}/skills/")
+    return problems
 
-    for path, content in _manifests().items():
+
+def sync(check: bool, root: Path = ROOT) -> int:
+    problems: list[str] = []
+    generated = {**_manifests(root), **_mcp_files(root)}
+    for path, content in generated.items():
         rendered = _render(content)
-        rel = path.relative_to(ROOT)
+        rel = path.relative_to(root)
         if check:
             if not path.exists() or path.read_text() != rendered:
                 problems.append(f"drift: {rel} is stale (run make sync-plugins)")
@@ -242,28 +278,83 @@ def sync(check: bool) -> int:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(rendered)
 
-    for name, p in PLUGINS.items():
-        for skill in p["skills"]:
-            src = SKILLS / skill
-            dst = PLUGINS_DIR / name / "skills" / skill
-            if not src.is_dir():
-                problems.append(f"missing source skill: {skill}")
-                continue
-            if check:
-                if _trees_differ(src, dst):
-                    problems.append(f"drift: plugins/{name}/skills/{skill} != skills/{skill}")
-            else:
-                if dst.exists():
-                    shutil.rmtree(dst)
-                shutil.copytree(src, dst)
+    problems += _version_problems(root)
+    return _report(problems, "plugins in sync" if check else "plugins synced")
 
+
+def _git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(  # noqa: S603 - fixed git argv, no shell
+        ["git", *args],  # noqa: S607 - git from PATH is intended
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def _version_tuple(version: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in version.split("."))
+
+
+def _plugin_paths(name: str) -> list[str]:
+    """Paths whose changes require a version bump of ``name`` (spec MKT-5a)."""
+    paths = [f"{PLUGINS_DIR_NAME}/{name}/"]
+    mcp = PLUGINS.get(name, {}).get("mcp")
+    if isinstance(mcp, dict):
+        paths.append(f"{mcp['path']}/")
+    return paths
+
+
+def _is_plugin_file(path: str, prefixes: list[str]) -> bool:
+    return any(path.startswith(p) and not path.startswith(f"{p}tests/") for p in prefixes)
+
+
+def check_bump(ref: str, root: Path = ROOT) -> int:
+    base = _git(root, "merge-base", ref, "HEAD")
+    if base.returncode != 0:
+        return _report([f"cannot find merge base with {ref}: {base.stderr.strip()}"], "")
+    changed = _git(root, "diff", "--name-only", base.stdout.strip(), "HEAD").stdout.split()
+
+    problems: list[str] = []
+    plugins_dir = root / PLUGINS_DIR_NAME
+    for manifest in sorted(plugins_dir.glob("*/.claude-plugin/plugin.json")):
+        name = manifest.parent.parent.name
+        if not any(_is_plugin_file(f, _plugin_paths(name)) for f in changed):
+            continue
+        rel = manifest.relative_to(root).as_posix()
+        old = _git(root, "show", f"{ref}:{rel}")
+        if old.returncode != 0:
+            continue  # new plugin: any SemVer passes (MKT-4 is checked by --check)
+        old_version = str(json.loads(old.stdout).get("version", "0.0.0"))
+        new_version = str(json.loads(manifest.read_text()).get("version", "0.0.0"))
+        if not (_SEMVER.match(old_version) and _SEMVER.match(new_version)):
+            problems.append(f"{name}: cannot compare '{old_version}' with '{new_version}'")
+        elif _version_tuple(new_version) <= _version_tuple(old_version):
+            problems.append(
+                f"{name}: files changed but version {new_version} is not higher than "
+                f"{old_version} on {ref}"
+            )
+    return _report(problems, "version bumps ok")
+
+
+def _report(problems: list[str], ok: str) -> int:
     if problems:
         for problem in problems:
             print(f"FAIL {problem}")
         return 1
-    print("plugins in sync" if check else "plugins synced")
+    print(ok)
     return 0
 
 
+def main(argv: list[str]) -> int:
+    if "--check-bump" in argv:
+        index = argv.index("--check-bump")
+        if index + 1 >= len(argv):
+            print("usage: sync_plugins.py --check-bump <ref>", file=sys.stderr)
+            return 2
+        return check_bump(argv[index + 1])
+    return sync(check="--check" in argv)
+
+
 if __name__ == "__main__":
-    raise SystemExit(sync(check="--check" in sys.argv))
+    raise SystemExit(main(sys.argv))

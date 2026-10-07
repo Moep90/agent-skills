@@ -1,7 +1,21 @@
 {
   "name": "kapitan-generators",
+  "version": "0.1.0",
   "description": "Skills for the kapicorp Kubernetes and Terraform generators, kadet authoring, and project scaffolding.",
   "author": {
     "name": "kapicorp"
-  }
+  },
+  "homepage": "https://github.com/Moep90/agent-skills",
+  "repository": "https://github.com/Moep90/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "kapitan",
+    "kadet",
+    "generators",
+    "kubernetes",
+    "terraform",
+    "scaffolding",
+    "manifests",
+    "config-management"
+  ]
 }

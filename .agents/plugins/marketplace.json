@@ -1,7 +1,7 @@
 {
-  "name": "agent-toolkit-for-kapitan",
+  "name": "agent-skills",
   "interface": {
-    "displayName": "Agent Toolkit for Kapitan"
+    "displayName": "Agent Skills"
   },
   "plugins": [
     {
