@@ -3,7 +3,7 @@
 ```text
 Status: Approved
 Code: plugins/arena/
-Verified against: not yet
+Verified against: main @ d76471e
 ```
 
 ## Problem
