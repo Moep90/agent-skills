@@ -18,7 +18,7 @@ _MAX_DESCRIPTION = 1024
 
 # Grouping metadata (item 4). Flat directories stay flat; the category is a frontmatter
 # field so docs and the installer can group skills without a directory reorg.
-_CATEGORIES = frozenset({"core", "generators", "authoring", "scaffolding"})
+_CATEGORIES = frozenset({"core", "generators", "authoring", "scaffolding", "workflow"})
 
 
 def _parse_frontmatter(text: str) -> dict[str, str]:

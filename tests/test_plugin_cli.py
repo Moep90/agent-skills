@@ -31,6 +31,7 @@ PLUGIN_NAMES = set(sync_plugins.PLUGINS)
     "path",
     [
         REPO_ROOT,  # the marketplace manifest at .claude-plugin/marketplace.json
+        REPO_ROOT / "plugins" / "arena",
         REPO_ROOT / "plugins" / "kapitan-core",
         REPO_ROOT / "plugins" / "kapitan-generators",
     ],
