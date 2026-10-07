@@ -3,7 +3,7 @@
 ```text
 Status: Approved
 Code: plugins/arena/
-Verified against: not yet (no implementation)
+Verified against: not yet
 ```
 
 ## Problem
@@ -75,8 +75,9 @@ Related: [OpenAI Codex pricing](https://learn.chatgpt.com/docs/pricing),
 
 The skill lives in `plugins/arena/skills/arena/SKILL.md`; installation per host
 is specified in [marketplace.md](marketplace.md). It has no script and no
-runtime dependency apart from `git` and the CLIs a run calls (`codex`,
-`claude`); it runs only inside a git working tree (ARENA-19a).
+runtime dependency apart from `git`, GNU coreutils (`timeout`,
+`sha256sum`; on macOS `brew install coreutils`) and the CLIs a run calls
+(`codex`, `claude`); it runs only inside a git working tree (ARENA-19a).
 
 The host is the agent that runs the skill and orchestrates the loop. The
 author is the host session itself when `--author` names the host's own model
@@ -331,7 +332,7 @@ and never edits the artifact.
   finding, `<ID> | fixed` or `<ID> | rejected | <reason>`; the orchestrating
   session copies these into the ledger.
 
-  - Test: manual: AC-7
+  - Test: manual: AC-7 (partial: the CLI-author disposition lines are not parsed in any run, because every CLI-author run approved at review 1)
   - Since: this change
 
 ## Stop conditions
@@ -440,7 +441,7 @@ exception is a broken output contract, which is often transient.
   target always stops; in later rounds a rejection-only revision is a valid
   answer under ARENA-13 and goes to the next review.
 
-  - Test: manual: AC-8
+  - Test: manual: AC-8 (partial: the unchanged-target stop never fired)
   - Since: this change
 
 - ARENA-23: After a CLI author run, every detected change outside the
@@ -459,7 +460,7 @@ exception is a broken output contract, which is often transient.
   scan of directories such as `node_modules` on every round.
   Reverting could destroy work the user wants; the user decides.
 
-  - Test: manual: AC-8
+  - Test: manual: AC-8 (partial: the outside-target report never fired, because there were no stray files)
   - Since: this change
 
 - ARENA-24: Every stop after the run directory exists MUST report the artifact path, the

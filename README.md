@@ -12,7 +12,8 @@ Agent plugins for Claude Code, Codex CLI, Cursor and OpenCode, versioned per plu
 
 Invoke as `/arena:arena <task or path> [--author claude|codex] [--rubric code|skill|text]` in
 Claude Code (`/arena` in OpenCode, `$arena` in Codex CLI). It needs the `codex` and `claude`
-CLIs, logged in, and runs inside a git working tree.
+CLIs, logged in, and runs inside a git working tree. It also needs GNU coreutils (`timeout`, `sha256sum`); on macOS
+`brew install coreutils`.
 
 **Data note:** the CLIs Arena calls can read any file you can read, and everything they read is
 sent to OpenAI or Anthropic.
