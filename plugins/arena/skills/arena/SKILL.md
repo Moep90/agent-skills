@@ -210,8 +210,9 @@ Rubric (frozen; judge only against these criteria):
 <content of rubric.md>
 
 Ledger of earlier findings (may be empty). Check every entry with status `fixed`; if it is
-not really fixed, report it again with its ID. Raise an entry with status `rejected` again
-only with a new argument, keeping its ID.
+not really fixed, report it again with its ID. For every entry with status `rejected`, judge
+the author's reason: if it does not resolve the problem, report the entry again with its ID
+and say why; the human owner then decides.
 <content of ledger.md>
 
 Rules:
