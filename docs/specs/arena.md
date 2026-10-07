@@ -545,11 +545,12 @@ evidence for that.
   `ERROR: You’ve hit your usage limit. Try again at 3:14 PM.` on stderr.
   Exactly one `exec` call; the report contains `Try again at 3:14 PM`.
   Check: `tests/run.sh ratelimit`
-- AC-4 (ARENA-11, ARENA-11a, ARENA-11b, ARENA-11c, ARENA-21): four
-  variants. In the first three the stub returns the same broken output on
+- AC-4 (ARENA-11, ARENA-11a, ARENA-11b, ARENA-11c, ARENA-21): five
+  variants. In the first four the stub returns the same broken output on
   its first two calls: no `VERDICT:` line; `VERDICT: APPROVED` with a
-  blocking finding; `VERDICT: REVISE` with only minor findings. Each makes
-  exactly two `exec` calls, then stops. In the fourth the stub returns a
+  blocking finding; `VERDICT: REVISE` with only minor findings; a finding
+  line with an unknown severity word (`urgent`). Each makes
+  exactly two `exec` calls, then stops. In the fifth the stub returns a
   valid `REVISE` in round 1, then twice a round 2 review with a finding
   whose first field is an ID not in the ledger; it makes exactly three `exec` calls, then stops.
   Check: `tests/run.sh contract`
@@ -602,7 +603,7 @@ Verification and ARENA-20.
 |---|---|
 | `plugins/arena/skills/arena/SKILL.md` | The skill: host rules, protocol, rubrics, reviewer prompt, ledger format |
 | `plugins/arena/tests/bin/codex` | Stub CLI: canned responses per scenario, call log with arguments |
-| `plugins/arena/tests/scenarios/<name>/` | Canned stub responses and exit codes for `approved`, `cap`, `ratelimit`, `contract` (four variants), `preflight`, `nogit` (run outside git), `blocked` |
+| `plugins/arena/tests/scenarios/<name>/` | Canned stub responses and exit codes for `approved`, `cap`, `ratelimit`, `contract` (five variants), `preflight`, `nogit` (run outside git), `blocked` |
 | `plugins/arena/tests/run.sh` | Runs one scenario headless in a throwaway git directory linking `.claude/skills/arena` to the skill, asserts on the call log and output |
 | `plugins/arena/tests/fixtures/skill-contradiction/SKILL.md` | Skill with a planted contradiction for AC-7 |
 

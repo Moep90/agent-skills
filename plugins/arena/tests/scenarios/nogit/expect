@@ -1,2 +1,2 @@
 exec_calls 0
-output git
+output git (working tree|checkout)
