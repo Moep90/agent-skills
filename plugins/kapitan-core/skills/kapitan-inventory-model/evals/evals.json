@@ -1,0 +1,29 @@
+{
+  "skill": "kapitan-inventory-model",
+  "cases": [
+    {
+      "prompt": "Why is mysql.image in my prod target not the value I set in the base class?",
+      "expect": ["merge order", "target wins last", "kapitan_inventory_target or kapitan_class_hierarchy"]
+    },
+    {
+      "prompt": "My class sets namespace: ${target_name} but target_name is defined elsewhere. Does that work?",
+      "expect": ["interpolation resolves after merge", "yes"]
+    },
+    {
+      "prompt": "How do I find every place a parameter is defined across my inventory?",
+      "expect": ["kapitan_search_inventory"]
+    },
+    {
+      "prompt": "What is the difference between reclass and omegaconf interpolation syntax?",
+      "expect": ["colon delimiter", "dot delimiter", "check the backend"]
+    },
+    {
+      "prompt": "A class file exists but omegaconf says it is missing. Why?",
+      "expect": [".yaml", ".yml", "extension"]
+    },
+    {
+      "prompt": "Should I switch inventory backend to get past a resolution error?",
+      "expect": ["no", "do not switch backends"]
+    }
+  ]
+}

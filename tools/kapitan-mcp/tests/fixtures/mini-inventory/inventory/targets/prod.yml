@@ -1,0 +1,15 @@
+# prod target: overrides mysql.image at the target level (wins last over component.mysql).
+# This is the value kapitan_search_inventory / class-hierarchy tests point at.
+classes:
+  - common
+  - component.mysql
+parameters:
+  target_name: prod
+  mysql:
+    image: mysql:8.0-prod
+  # Concrete ref with a matching fake ref file under refs/, so refs_list can report
+  # exists=true. The mysql.password ref (in component.mysql) is interpolated and has
+  # no file, so it reports exists=false.
+  tls_key: ?{gpg:targets/prod/tls_key}
+  labels:
+    env: prod

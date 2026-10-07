@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "kapitan": {
+      "command": "uvx",
+      "args": [
+        "--with",
+        "kapitan",
+        "--from",
+        "git+https://github.com/Moep90/agent-toolkit-for-kapitan.git#subdirectory=tools/kapitan-mcp",
+        "kapitan-mcp-server"
+      ]
+    }
+  }
+}

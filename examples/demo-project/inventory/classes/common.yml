@@ -1,0 +1,11 @@
+parameters:
+  namespace: ${target_name}
+  greeting: Hello from ${target_name}
+  kapitan:
+    vars:
+      target: ${target_name}
+    compile:
+      - input_type: jinja2
+        input_paths:
+          - components/greeting
+        output_path: .

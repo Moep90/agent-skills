@@ -1,0 +1,5 @@
+classes:
+  - common
+  - component.mysql
+parameters:
+  target_name: dev

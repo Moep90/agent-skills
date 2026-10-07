@@ -1,0 +1,9 @@
+# dev target: takes the component default image (mysql:8.0), no target-level override.
+# Pairs with prod.yml to prove "target wins last" only when the target actually sets a value.
+classes:
+  - common
+  - component.mysql
+parameters:
+  target_name: dev
+  labels:
+    env: dev

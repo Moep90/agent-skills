@@ -1,0 +1,25 @@
+{
+  "skill": "kapitan-debugging-compile",
+  "cases": [
+    {
+      "prompt": "kapitan compile says Class component.redis not found. What now?",
+      "expect": ["check the dotted name", "inventory/classes", "typo"]
+    },
+    {
+      "prompt": "I get Cannot resolve ${db:host} during compile.",
+      "expect": ["missing after merge", "kapitan_search_inventory"]
+    },
+    {
+      "prompt": "After editing one target, the diff shows changes in three other targets. Is that fine?",
+      "expect": ["regression", "shared class", "confirm"]
+    },
+    {
+      "prompt": "Can I just edit the file under compiled/ to fix the output?",
+      "expect": ["never", "change the inventory or template", "recompile"]
+    },
+    {
+      "prompt": "One of my values compiled to the literal string null. Why?",
+      "expect": ["reclass-rs", "compat"]
+    }
+  ]
+}

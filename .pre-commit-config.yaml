@@ -1,0 +1,55 @@
+# Pin `rev`s are refreshed by Dependabot. Bump to the current release when adding hooks.
+# Framework hooks below run on commit only; the push stage runs just the ci-gate hook.
+default_stages: [pre-commit]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+        # compiled/ fixtures are golden kapitan output, byte-exact with a real compile
+        # (kapitan's jinja2 renderer strips the final newline); don't reformat them.
+        exclude: ^tools/kapitan-mcp/tests/fixtures/.*/compiled/
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: check-yaml
+        args: [--unsafe] # kapitan fixtures use custom tags
+        exclude: ^tools/kapitan-mcp/tests/fixtures/
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.20
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.14.1
+    hooks:
+      - id: mypy
+        files: ^tools/kapitan-mcp/src/
+        additional_dependencies: [pydantic>=2, types-PyYAML]
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.14.0
+    hooks:
+      - id: markdownlint-cli2
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.4
+    hooks:
+      - id: actionlint
+  # Push-stage gate mirroring the CI quality + test jobs. Commit-stage ruff only sees
+  # changed files and never runs the tests, so this catches what reaches main otherwise.
+  - repo: local
+    hooks:
+      - id: ci-gate
+        name: make lint typecheck check-plugins test
+        entry: make lint typecheck check-plugins test
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

@@ -310,6 +310,7 @@ host.
 | `plugins/kapitan-core/`, `plugins/kapitan-generators/` | Imported plugins, each with generated manifests and `CHANGELOG.md` |
 | `tools/kapitan-mcp/` | Imported MCP server with its tests |
 | `docs/kapitan-mcp-server.md`, `docs/adr/0001-subprocess-first.md` | Imported server docs |
+| `examples/demo-project/` | Imported Kapitan project used by the server e2e test |
 | `Makefile`, `mise.toml` | Shared entry points, pinned local tools |
 | `.pre-commit-config.yaml` | MKT-9 |
 | `.github/workflows/ci.yml` | MKT-10 |

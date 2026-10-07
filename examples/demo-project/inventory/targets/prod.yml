@@ -1,0 +1,4 @@
+classes:
+  - common
+parameters:
+  target_name: prod

@@ -1,0 +1,30 @@
+{
+  "name": "agent-toolkit-for-kapitan",
+  "interface": {
+    "displayName": "Agent Toolkit for Kapitan"
+  },
+  "plugins": [
+    {
+      "name": "kapitan-core",
+      "source": {
+        "source": "local",
+        "path": "./plugins/kapitan-core"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "DevOps"
+    },
+    {
+      "name": "kapitan-generators",
+      "source": {
+        "source": "local",
+        "path": "./plugins/kapitan-generators"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "DevOps"
+    }
+  ]
+}

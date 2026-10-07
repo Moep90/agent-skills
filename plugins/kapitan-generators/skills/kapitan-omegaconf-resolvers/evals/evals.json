@@ -1,0 +1,21 @@
+{
+  "skill": "kapitan-omegaconf-resolvers",
+  "cases": [
+    {
+      "prompt": "I keep copy-pasting the same helm compile and dependency block per chart. How do I make it reusable?",
+      "expect": ["resolvers.py", "pass_resolvers", "kapitan.compile", "dependencies"]
+    },
+    {
+      "prompt": "How does Kapitan know about a custom resolver I wrote?",
+      "expect": ["inventory/resolvers.py", "pass_resolvers", "dict", "omegaconf"]
+    },
+    {
+      "prompt": "How do I layer shared defaults under a per-instance override in the inventory?",
+      "expect": ["merge", "defaults", "override"]
+    },
+    {
+      "prompt": "My value with ${...} in it gets resolved away before it reaches the tool.",
+      "expect": ["escape", "literal", "resolve"]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "skill": "kapitan-kubernetes-generator",
+  "cases": [
+    {
+      "prompt": "Add an nginx component that exposes port 80 as a service.",
+      "expect": ["components:", "image", "ports", "service_port"]
+    },
+    {
+      "prompt": "How do I pass a database password to a container without inlining it?",
+      "expect": ["secretKeyRef", "ref", "do not inline"]
+    },
+    {
+      "prompt": "A generator field I expected does not exist. Why?",
+      "expect": ["generator version", "system/", "drift"]
+    },
+    {
+      "prompt": "How do I mount a config map into the container?",
+      "expect": ["config_maps", "mount"]
+    }
+  ]
+}

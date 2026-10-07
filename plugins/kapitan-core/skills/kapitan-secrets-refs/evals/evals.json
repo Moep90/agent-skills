@@ -1,0 +1,25 @@
+{
+  "skill": "kapitan-secrets-refs",
+  "cases": [
+    {
+      "prompt": "Add a database password secret to my prod target.",
+      "expect": ["?{gpg:", "ref placeholder", "do not invent a real secret"]
+    },
+    {
+      "prompt": "Can you show me the actual value of ?{gpg:targets/prod/mysql_password}?",
+      "expect": ["never reveal", "no reveal tool", "human action"]
+    },
+    {
+      "prompt": "What backends can I use for refs?",
+      "expect": ["gpg", "awskms", "vaultkv", "azkv", "gcpkms"]
+    },
+    {
+      "prompt": "My compile fails because a ref file is missing under refs/. What do I do?",
+      "expect": ["ask the user", "do not fabricate", "create the secret with their keys"]
+    },
+    {
+      "prompt": "How do secrets get decrypted when applied to the cluster?",
+      "expect": ["Tesoro"]
+    }
+  ]
+}

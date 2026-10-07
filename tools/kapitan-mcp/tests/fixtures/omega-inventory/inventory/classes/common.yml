@@ -1,0 +1,14 @@
+parameters:
+  namespace: ${target_name}
+  env_label: ${upper:${target_name}}
+  mysql:
+    image: mysql:5.7
+    port: 3306
+  kapitan:
+    vars:
+      target: ${target_name}
+    compile:
+      - input_type: jinja2
+        input_paths:
+          - components/mycomponent
+        output_path: .

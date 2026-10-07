@@ -1,0 +1,7 @@
+{
+  "name": "kapitan-generators",
+  "description": "Skills for the kapicorp Kubernetes and Terraform generators, kadet authoring, and project scaffolding.",
+  "author": {
+    "name": "kapicorp"
+  }
+}

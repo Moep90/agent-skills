@@ -1,0 +1,26 @@
+{
+  "name": "kapitan-core",
+  "displayName": "Kapitan Core",
+  "description": "Kapitan MCP server plus core skills: the inventory model, secret refs, and compile debugging.",
+  "author": {
+    "name": "kapicorp"
+  },
+  "homepage": "https://github.com/Moep90/agent-toolkit-for-kapitan",
+  "repository": "https://github.com/Moep90/agent-toolkit-for-kapitan",
+  "license": "Apache-2.0",
+  "category": "developer-tools",
+  "keywords": [
+    "kapitan",
+    "inventory",
+    "reclass",
+    "omegaconf",
+    "secrets",
+    "refs",
+    "compile",
+    "kubernetes",
+    "config-management",
+    "gitops"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

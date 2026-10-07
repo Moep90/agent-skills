@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Kapitan output (never commit compiled output from local scratch runs)
+/tmp-compiled/
+
+# Editors / OS
+.DS_Store
+*.swp
+
+# Local Claude Code config (settings are user-level, not committed)
+.claude/
+
+# Superpowers planning docs stay local, never committed
+docs/superpowers/

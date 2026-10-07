@@ -1,0 +1,7 @@
+# Middle of the override chain. Bumps the image set in common.yml so a merge-order
+# test can prove the later class wins over the earlier one.
+parameters:
+  mysql:
+    image: mysql:8.0
+    # One dummy gpg ref: feeds kapitan_refs_list tests and the gitleaks allowlist.
+    password: ?{gpg:targets/${target_name}/mysql_password}

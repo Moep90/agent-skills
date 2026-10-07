@@ -1,0 +1,7 @@
+{
+  "name": "kapitan-core",
+  "description": "Kapitan MCP server plus core skills: the inventory model, secret refs, and compile debugging.",
+  "author": {
+    "name": "kapicorp"
+  }
+}

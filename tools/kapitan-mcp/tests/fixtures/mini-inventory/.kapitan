@@ -1,0 +1,5 @@
+# Marks the project root and pins the inventory backend. kapitan reads the flag from the
+# 'global' section (or a per-command section), not a top-level scalar.
+# reclass is the default; integration tests also run this fixture under reclass-rs.
+global:
+  inventory-backend: reclass

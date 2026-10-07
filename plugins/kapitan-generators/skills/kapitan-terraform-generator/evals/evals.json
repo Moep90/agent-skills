@@ -1,0 +1,21 @@
+{
+  "skill": "kapitan-terraform-generator",
+  "cases": [
+    {
+      "prompt": "Set up the Terraform generator with a GCP provider in my target.",
+      "expect": ["provider", "inventory", "generator"]
+    },
+    {
+      "prompt": "Where does Terraform state backend config go?",
+      "expect": ["inventory", "consistent across targets"]
+    },
+    {
+      "prompt": "Can I edit the generated .tf files directly?",
+      "expect": ["never", "change the inventory", "recompile"]
+    },
+    {
+      "prompt": "How do I keep cloud credentials out of the generated Terraform?",
+      "expect": ["refs", "not inline"]
+    }
+  ]
+}

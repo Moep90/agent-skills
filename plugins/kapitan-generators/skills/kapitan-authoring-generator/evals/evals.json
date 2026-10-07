@@ -1,0 +1,21 @@
+{
+  "skill": "kapitan-authoring-generator",
+  "cases": [
+    {
+      "prompt": "I'm writing a new Kapitan generator. What does the entrypoint have to look like?",
+      "expect": ["main(input_params)", "inventory", "kgenlib", "BaseStore"]
+    },
+    {
+      "prompt": "My generator emits two YAML files but they keep overwriting each other. Why?",
+      "expect": ["output", "suffix", "namespace", "unique"]
+    },
+    {
+      "prompt": "How does a generator decide which subfolder and filename each manifest lands in?",
+      "expect": ["{namespace}/{name}-", "prefix", "filename"]
+    },
+    {
+      "prompt": "I added a new resource kind but it ended up in the wrong compiled file.",
+      "expect": ["kind", "routing", "bundle"]
+    }
+  ]
+}

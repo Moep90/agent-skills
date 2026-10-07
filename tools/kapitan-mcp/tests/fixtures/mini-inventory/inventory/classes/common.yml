@@ -1,0 +1,16 @@
+# Base class every target includes. Establishes the bottom of the three-level
+# override chain (common -> component.mysql -> target) that merge-order tests rely on.
+parameters:
+  namespace: ${target_name}   # interpolation resolves only after the full merge
+  mysql:
+    image: mysql:5.7          # overridden by component.mysql, then by prod's target file
+    port: 3306
+  kapitan:
+    vars:
+      target: ${target_name}   # kapitan needs this set to name the compile output dir
+    compile:
+      # jinja2 is pure Python, so compile works in CI without external binaries.
+      - input_type: jinja2
+        input_paths:
+          - components/mycomponent
+        output_path: .

@@ -1,0 +1,13 @@
+title = "agent-toolkit-for-kapitan gitleaks config"
+
+[extend]
+useDefault = true
+
+# The mini-inventory fixture intentionally contains a *dummy* gpg ref token
+# (?{gpg:...}) and a fake ref file. These are references, not secret values, and
+# must not trip the scanner.
+[allowlist]
+description = "Test fixtures with dummy kapitan refs"
+paths = [
+  '''tools/kapitan-mcp/tests/fixtures/.*''',
+]
