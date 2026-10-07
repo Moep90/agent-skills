@@ -2,7 +2,7 @@
 
 ```text
 Status: Draft
-Code: .claude-plugin/, .cursor-plugin/, .agents/plugins/, plugins/, tools/kapitan-mcp/, scripts/, Makefile, mise.toml, .pre-commit-config.yaml, .github/, renovate.json, LICENSE, NOTICE, README.md
+Code: .claude-plugin/, .cursor-plugin/, .agents/plugins/, plugins/, scripts/, tests/, pyproject.toml, Makefile, mise.toml, .pre-commit-config.yaml, .github/, renovate.json, LICENSE, NOTICE, README.md
 Verified against: not yet (no implementation)
 ```
 
@@ -22,11 +22,11 @@ release, and the MCP server is installed from `main` as well.
 
 DEC-1: This repository is the one marketplace for all plugins, published as
 the public GitHub repository `Moep90/agent-skills`. It contains Arena and the
-Kapitan plugins `kapitan-core` and `kapitan-generators` together with the
-Kapitan MCP server. The Kapitan parts are a plain copy of
-`agent-toolkit-for-kapitan` at commit `5c1391b`; its history stays readable in
-that repository, which is archived with a pointer to this one. It had no
-stars or forks, so no user has to migrate. Not copied: `rules/`, the CodeQL,
+Kapitan plugins `kapitan-core` and `kapitan-generators`. The Kapitan skills
+and the generator scripts are a plain copy of `agent-toolkit-for-kapitan` at
+commit `5c1391b`; its history stays readable in that repository, which is
+archived with a pointer to this one. It had no stars or forks, so no user has
+to migrate. Not copied: the Kapitan MCP server, `rules/`, the CodeQL,
 Scorecard and dependency-review workflows and `SECURITY-REVIEW.md`.
 
 Revised: an earlier draft kept the Kapitan toolkit separate. Maintaining two
@@ -52,12 +52,16 @@ tool. `claude plugin tag` already checks that `plugin.json` and the
 marketplace entry agree; a release tool such as release-please would add a
 workflow and a bot for a manual, occasional step.
 
-DEC-5: The Kapitan MCP server is not published to PyPI and has no version of
-its own. It ships with `kapitan-core`: the plugin's `.mcp.json` installs it
-with `uvx` from this repository at the plugin's release tag, so a plugin
-version always runs the server code it was released with. This is a
-deliberate exception to python-semantic-release, which would version and
-publish a package nobody installs from PyPI.
+DEC-5: The Kapitan MCP server is dropped, not imported. It was never used,
+and a rewrite in Rust is under way elsewhere. The Kapitan skills mention the
+`kapitan_*` MCP tools only as an option ("if the tools are available") and
+work without them, so they stay unchanged. Without the server, this
+repository has no MCP configuration, and the generator renders none.
+
+Revised: an earlier draft imported the server into `tools/kapitan-mcp` and
+pinned it to the `kapitan-core` release tag. That brought a Python package,
+a ten-job test matrix and integration tests against Kapitan into a skills
+repository for code nobody ran.
 
 DEC-6: Hermes Agent gets no install route (arena.md DEC-6).
 
@@ -75,11 +79,9 @@ plugins/<name>/
   .claude-plugin/plugin.json
   .cursor-plugin/plugin.json
   .codex-plugin/plugin.json
-  .mcp.json                          # only plugins with an MCP server
   skills/<skill>/SKILL.md
   CHANGELOG.md
   tests/                             # optional
-tools/kapitan-mcp/                   # MCP server of kapitan-core (Python, uv)
 scripts/sync_plugins.py              # registry and generator
 scripts/validate_skills.py           # skill frontmatter and link checks
 ```
@@ -93,7 +95,7 @@ has at least one skill, so Arena joins with its implementation.
   files, and every marketplace entry MUST point to an existing plugin
   directory.
 
-  - Test: scripts/sync_plugins.py --check; tools/kapitan-mcp/tests/unit/test_sync_plugins.py (AC-1)
+  - Test: scripts/sync_plugins.py --check; tests/test_sync_plugins.py (AC-1)
   - Since: not implemented
 
 - MKT-2: Every manifest and marketplace file MUST be the generator's output
@@ -106,17 +108,9 @@ has at least one skill, so Arena joins with its implementation.
   - Test: scripts/sync_plugins.py --check (AC-1)
   - Since: not implemented
 
-- MKT-2a: A plugin's `.mcp.json` MUST install its server from
-  `git+https://github.com/Moep90/agent-skills.git@{name}--v{version}#subdirectory=<server path>`,
-  rendered by the generator from the registry.
-
-  The Kapitan toolkit installed the server from `main`, so a plugin and its
-  server could come from different commits. Consequence: the tag of a plugin
-  with a server must be pushed right after the version bump is merged, or
-  the server install fails (MKT-7).
-
-  - Test: tools/kapitan-mcp/tests/unit/test_sync_plugins.py (AC-1); manual: AC-5
-  - Since: not implemented
+- MKT-2a: Withdrawn with the MCP server (DEC-5). It pinned a plugin's
+  `.mcp.json` to the plugin's release tag; a plugin that ships an MCP server
+  again needs a new requirement for how its server is versioned.
 
 - MKT-3: Every manifest and marketplace file MUST pass
   `claude plugin validate --strict`.
@@ -124,7 +118,7 @@ has at least one skill, so Arena joins with its implementation.
   The command needs no login (probe with an empty `CLAUDE_CONFIG_DIR` and no
   API key, Claude Code 2.1.292), so CI installs Claude Code and runs it.
 
-  - Test: tools/kapitan-mcp/tests/integration/test_plugin_cli.py (AC-1)
+  - Test: tests/test_plugin_cli.py (AC-1)
   - Since: not implemented
 
 - MKT-13: Every skill MUST pass `scripts/validate_skills.py`: the frontmatter
@@ -166,11 +160,9 @@ not a formality.
   - Since: not implemented
 
 - MKT-5a: The files of a plugin are everything under `plugins/<name>/` except
-  `tests/`, plus the server path of a plugin with an MCP server, except that
-  server's `tests/`.
+  `tests/`.
 
-  Tests are not installed behaviour. The server path counts because users
-  run the server code of the plugin's tag (MKT-2a).
+  Tests are not installed behaviour.
 
   - Test: `scripts/sync_plugins.py --check-bump <target ref>` (AC-2)
   - Since: not implemented
@@ -185,8 +177,8 @@ not a formality.
   with `claude plugin tag --push plugins/<name>` on the default branch after
   the bump is merged.
 
-  The Codex pin `--ref <tag>` and the server install of MKT-2a need the tag on
-  the remote; a local tag is not a release.
+  The Codex pin `--ref <tag>` needs the tag on the remote; a local tag is not
+  a release.
 
   - Test: manual: `claude plugin tag --dry-run plugins/<name>` before tagging,
     `git ls-remote --tags origin '{name}--v{version}'` after
@@ -202,7 +194,7 @@ states.
 | Claude Code | `/plugin marketplace add Moep90/agent-skills`, then `/plugin install <plugin>@agent-skills` |
 | Codex CLI | `codex plugin marketplace add Moep90/agent-skills`, then `codex plugin add <plugin>@agent-skills`; `codex plugin marketplace upgrade` fetches new versions |
 | Cursor | Add the repository as a plugin marketplace in Cursor's plugin settings, then install the plugin |
-| OpenCode | Symlink `plugins/<plugin>/skills/<skill>` to `$HOME/.agents/skills/<skill>`. MCP servers are configured by hand from the plugin's `.mcp.json`. |
+| OpenCode | Symlink `plugins/<plugin>/skills/<skill>` to `$HOME/.agents/skills/<skill>`. |
 
 Codex installs from a git snapshot of the marketplace, refreshed by
 `codex plugin marketplace upgrade`. A user who wants to stay on one release
@@ -218,14 +210,15 @@ help of codex-cli 0.160.1.
 
 ## Repository health
 
-The Kapitan server brings Python: uv manages the interpreter, environment and
-lock in `tools/kapitan-mcp/`, `mise.toml` pins uv and pre-commit for local
-work, and `Makefile` targets are the entry points shared by developers and
-CI. Arena's Layer 1 tests need a logged-in `claude` on the user's
+The generator and the skill validator are stdlib-only Python scripts. Their
+tests run with pytest from a root `pyproject.toml` that is not a package;
+uv manages the interpreter, environment and lock, `mise.toml` pins uv and
+pre-commit for local work, and `Makefile` targets are the entry points shared
+by developers and CI. Arena's Layer 1 tests need a logged-in `claude` on the user's
 subscription, so they run locally and are not part of CI; running them in CI
 would need a paid API key.
 
-- MKT-9: pre-commit MUST run gitleaks, ruff, mypy, yamllint, markdownlint,
+- MKT-9: pre-commit MUST run gitleaks, ruff, yamllint, markdownlint,
   actionlint, shellcheck, JSON syntax checks, end-of-file and
   trailing-whitespace fixers, and a check that rejects absolute home paths in
   committed files.
@@ -238,20 +231,19 @@ would need a paid API key.
   committed. The check exists because skills are written on a personal
   machine and a stray path leaks the account name.
 
-  - Test: tools/kapitan-mcp/tests/unit/test_repo_hygiene.py; CI job `pre-commit` (AC-4)
+  - Test: tests/test_repo_hygiene.py; CI job `pre-commit` (AC-4)
   - Since: not implemented
 
 - MKT-10: CI on every pull request MUST run pre-commit on all files, the
   generator check, the bump check against the target branch, skill
-  validation, ruff, mypy, the server unit tests on every Python version the
-  server declares, and its integration tests with Kapitan installed.
+  validation, ruff, the script tests, and `claude plugin validate --strict`.
 
   - Test: CI workflow `.github/workflows/ci.yml` (AC-4)
   - Since: not implemented
 
-- MKT-11: Renovate MUST manage GitHub Actions, pre-commit hooks, the server's
-  Python dependencies and lock, and the tools in `mise.toml`, with automerge
-  disabled.
+- MKT-11: Renovate MUST manage GitHub Actions, pre-commit hooks, the Python
+  dependencies and lock of the root `pyproject.toml`, and the tools in
+  `mise.toml`, with automerge disabled.
 
   Renovate replaces the Kapitan toolkit's Dependabot configuration.
 
@@ -266,18 +258,16 @@ would need a paid API key.
 
 ## Verification
 
-- AC-1 (MKT-1, MKT-2, MKT-2a, MKT-3, MKT-4, MKT-6, MKT-13):
+- AC-1 (MKT-1, MKT-2, MKT-3, MKT-4, MKT-6, MKT-13):
   `python3 scripts/sync_plugins.py --check`, `make validate-skills` and the
   generator's unit tests pass on the repository. The unit tests fail on a
   registry with a non-SemVer version, a version without changelog section and
-  a stale generated file, and assert the `.mcp.json` URL pins the tag.
+  a stale generated file.
   `test_plugin_cli.py` validates every plugin and the marketplace with
   `claude plugin validate --strict`.
   Check: CI job `quality`; `make test-plugin-cli` locally
 - AC-2 (MKT-5, MKT-5a): unit tests build a temporary git repository and run
-  the bump check. It fails when a skill changes without a bump and when a
-  server file of `kapitan-core` changes without a `kapitan-core` bump. It
-  passes when only `tests/` changes, when a new plugin is added at 0.1.0 and
+  the bump check. It fails when a skill changes without a bump. It passes when only `tests/` changes, when a new plugin is added at 0.1.0 and
   when a plugin is deleted with its entries; a branch bumped to 0.2.0 fails
   after the target tip moved to 0.3.0.
   Check: CI job `quality`
@@ -288,17 +278,14 @@ would need a paid API key.
 - AC-4 (MKT-9, MKT-10): the home-path hook fails on a temporary file whose
   content is generated at test time as a home prefix joined with a literal
   user name, for both `/home` and `/Users`, and passes on this repository.
-  Check: `tests/unit/test_repo_hygiene.py` reads the hook's regex from
+  Check: `tests/test_repo_hygiene.py` reads the hook's regex from
   `.pre-commit-config.yaml`; CI job `pre-commit` runs the hook on all files
-- AC-5 (MKT-2a): after the `kapitan-core` tag is pushed, the command in
-  `plugins/kapitan-core/.mcp.json` starts the server.
-  Check: manual
 
 ## Open deviations
 
 | Gap | Note |
 |---|---|
-| The Kapitan plugins and the MCP server have no as-built spec | Their behaviour is covered by the imported unit, integration and e2e tests and `docs/adr/0001-subprocess-first.md`; an as-built spec follows in its own change. |
+| The Kapitan skills have no as-built spec | Their structure is checked by `scripts/validate_skills.py` and their trigger cases are listed in each skill's `evals/evals.json`; an as-built spec follows in its own change. |
 
 ## Open questions
 
@@ -314,9 +301,8 @@ host.
 | `scripts/validate_skills.py` | MKT-13 |
 | `.claude-plugin/marketplace.json`, `.cursor-plugin/marketplace.json`, `.agents/plugins/marketplace.json` | Generated marketplaces |
 | `plugins/kapitan-core/`, `plugins/kapitan-generators/` | Imported plugins, each with generated manifests and `CHANGELOG.md` |
-| `tools/kapitan-mcp/` | Imported MCP server with its tests |
-| `docs/kapitan-mcp-server.md`, `docs/adr/0001-subprocess-first.md` | Imported server docs |
-| `examples/demo-project/` | Imported Kapitan project used by the server e2e test |
+| `tests/` | Tests of the scripts, the home-path hook and the marketplace (`claude plugin validate`) |
+| `pyproject.toml`, `uv.lock`, `.python-version` | Test environment, not a package |
 | `Makefile`, `mise.toml` | Shared entry points, pinned local tools |
 | `.pre-commit-config.yaml` | MKT-9 |
 | `.github/workflows/ci.yml` | MKT-10 |
