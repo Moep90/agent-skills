@@ -5,6 +5,17 @@
   },
   "plugins": [
     {
+      "name": "arena",
+      "source": {
+        "source": "local",
+        "path": "./plugins/arena"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "Productivity"
+    },
+    {
       "name": "kapitan-core",
       "source": {
         "source": "local",

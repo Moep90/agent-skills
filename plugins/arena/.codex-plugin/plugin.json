@@ -1,0 +1,32 @@
+{
+  "name": "arena",
+  "version": "0.1.0",
+  "description": "Cross-model author and review loop: Claude writes and Codex reviews, or the reverse, against a frozen rubric until the reviewer approves.",
+  "author": {
+    "name": "Moep90",
+    "url": "https://github.com/Moep90/agent-skills"
+  },
+  "homepage": "https://github.com/Moep90/agent-skills",
+  "repository": "https://github.com/Moep90/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "review",
+    "codex",
+    "claude",
+    "cross-model",
+    "rubric",
+    "workflow"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Arena",
+    "shortDescription": "Agent plugin with skills",
+    "longDescription": "Cross-model author and review loop: Claude writes and Codex reviews, or the reverse, against a frozen rubric until the reviewer approves.",
+    "developerName": "Moep90",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ],
+    "websiteURL": "https://github.com/Moep90/agent-skills"
+  }
+}

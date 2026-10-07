@@ -1,0 +1,21 @@
+{
+  "skill": "arena",
+  "cases": [
+    {
+      "prompt": "Run arena on docs/design.md so Codex reviews it.",
+      "expect": ["triggers arena", "path run starting with a Codex review"]
+    },
+    {
+      "prompt": "Have the other model review my SKILL.md until it approves.",
+      "expect": ["triggers arena", "rubric skill"]
+    },
+    {
+      "prompt": "Let Codex write a short README section about installation and you review it.",
+      "expect": ["triggers arena", "task run with --author codex"]
+    },
+    {
+      "prompt": "Explain what a rubric is.",
+      "expect": ["does not trigger arena"]
+    }
+  ]
+}
