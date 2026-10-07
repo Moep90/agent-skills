@@ -1,0 +1,6 @@
+exec_calls 1
+args --sandbox read-only
+args -m gpt-6\.1-sol
+args model_reasoning_effort=medium
+no_args resume
+output APPROVED

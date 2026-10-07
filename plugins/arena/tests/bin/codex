@@ -1,0 +1,36 @@
+#!/bin/sh
+# Stub codex CLI for Arena's Layer 1 tests (docs/specs/arena.md, Verification).
+# Replays canned responses from $ARENA_STUB_DIR and logs every call to $ARENA_STUB_LOG.
+set -eu
+dir=${ARENA_STUB_DIR:?ARENA_STUB_DIR not set}
+log=${ARENA_STUB_LOG:?ARENA_STUB_LOG not set}
+printf '%s\n' "$*" >>"$log"
+
+if [ "${1:-}" = login ] && [ "${2:-}" = status ]; then
+  code=$(cat "$dir/login.exit" 2>/dev/null || echo 0)
+  if [ "$code" = 0 ]; then echo "Logged in using ChatGPT"; else echo "Not logged in" >&2; fi
+  exit "$code"
+fi
+if [ "${1:-}" != exec ]; then
+  echo "stub codex: unsupported call: $*" >&2
+  exit 2
+fi
+
+n=$(grep -c '^exec' "$log")
+out=""
+prev=""
+for arg in "$@"; do
+  if [ "$prev" = "-o" ]; then out=$arg; fi
+  prev=$arg
+done
+if [ ! -t 0 ]; then cat >/dev/null; fi
+
+resp="$dir/exec-$n.out"
+[ -f "$resp" ] || resp="$dir/exec.out"
+code=$(cat "$dir/exec-$n.exit" 2>/dev/null || cat "$dir/exec.exit" 2>/dev/null || echo 0)
+if [ -f "$dir/exec-$n.err" ]; then cat "$dir/exec-$n.err" >&2; fi
+if [ "$code" = 0 ]; then
+  if [ -n "$out" ]; then cp "$resp" "$out"; fi
+  cat "$resp"
+fi
+exit "$code"
