@@ -13,7 +13,7 @@ description: >-
 
 A Kapitan project has a predictable shape. Follow it so tools and generators find things.
 
-```
+```text
 .
 ├── .kapitan                 # pins inventory-backend and other defaults
 ├── inventory/

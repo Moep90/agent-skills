@@ -6,7 +6,7 @@ its first commit.
 
 Header of every spec:
 
-```
+```text
 Status: Draft | Approved | As-built | Superseded by <file>
 Code: <paths this spec governs>
 Verified against: main @ <commit>

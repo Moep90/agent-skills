@@ -1,6 +1,6 @@
 # Arena: cross-model author and review loop
 
-```
+```text
 Status: Draft
 Code: plugins/arena/
 Verified against: not yet (no implementation)
@@ -251,7 +251,7 @@ The ledger is a plain file in a run directory created with `mktemp -d`. The
 reviewer emits one line per finding with five fields. The first field is
 `new` for a new finding, or the ledger ID of the entry it repeats:
 
-```
+```text
 new | blocking | criterion: correct | src/x.py:42 | <problem and suggested fix>
 ```
 
@@ -259,7 +259,7 @@ The orchestrating session replaces `new` with the next free ID
 `R<round>-F<n>`. The author copies each line into the ledger and appends
 status and note:
 
-```
+```text
 R1-F2 | blocking | criterion: correct | src/x.py:42 | <problem and suggested fix> | status: rejected | <reason>
 ```
 
@@ -410,7 +410,7 @@ exception is a broken output contract, which is often transient.
   This covers the 5-hour and weekly Plus limits. `codex exec` exits 1 on a
   failed turn and prints `ERROR: <message>` to stderr; for a usage limit the
   message starts with `You’ve hit your usage limit` (typographic apostrophe)
-  and ends with ` Try again at <time>.` when the reset time is known. The
+  and ends with `Try again at <time>.` when the reset time is known. The
   report quotes that line, so the user sees the reset time. Exit code and
   stderr decide the stop; matching the message text only selects what to
   quote. Ten minutes is the limit of a single Bash call in Claude Code.

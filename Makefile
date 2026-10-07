@@ -2,11 +2,11 @@ MCP_DIR := tools/kapitan-mcp
 UV := uv --directory $(MCP_DIR)
 
 .PHONY: help sync lint format typecheck test test-integration test-plugin-cli evals all \
-        sync-plugins check-plugins validate-skills
+        sync-plugins check-plugins check-bump validate-skills
 
 help:
 	@echo "Targets: sync lint format typecheck test test-integration test-plugin-cli evals all"
-	@echo "         sync-plugins check-plugins validate-skills"
+	@echo "         sync-plugins check-plugins check-bump validate-skills"
 
 sync:
 	$(UV) sync
@@ -39,6 +39,9 @@ sync-plugins:
 
 check-plugins:
 	python3 scripts/sync_plugins.py --check
+
+check-bump:
+	python3 scripts/sync_plugins.py --check-bump $${BASE:-origin/main}
 
 evals:
 	@echo "trigger-rate evals run via the skill-creator harness with an API key"

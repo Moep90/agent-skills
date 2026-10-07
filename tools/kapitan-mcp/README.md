@@ -10,4 +10,4 @@ Run it with:
 uvx kapitan-mcp-server --project-root /path/to/your/kapitan/repo
 ```
 
-See the [repository root](../../README.md) for the full toolkit (skills, plugins, rules).
+It ships with the `kapitan-core` plugin; see the [repository root](../../README.md) for installation.

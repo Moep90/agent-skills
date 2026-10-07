@@ -1,6 +1,6 @@
 # Marketplace: distribution, versioning and repository health
 
-```
+```text
 Status: Draft
 Code: .claude-plugin/, .cursor-plugin/, .agents/plugins/, plugins/, tools/kapitan-mcp/, scripts/, Makefile, mise.toml, .pre-commit-config.yaml, .github/, renovate.json, LICENSE, NOTICE, README.md
 Verified against: not yet (no implementation)
@@ -67,7 +67,7 @@ Related: [Claude Code plugin manifest reference](https://code.claude.com/docs/en
 
 ## Layout and manifests
 
-```
+```text
 .claude-plugin/marketplace.json      # Claude Code marketplace "agent-skills"
 .cursor-plugin/marketplace.json      # Cursor marketplace
 .agents/plugins/marketplace.json     # Codex marketplace
@@ -162,7 +162,7 @@ not a formality.
   checked by MKT-5; MKT-1 requires its marketplace entries to be removed with
   it.
 
-  - Test: scripts/sync_plugins.py --check-bump <target ref> (AC-2)
+  - Test: `scripts/sync_plugins.py --check-bump <target ref>` (AC-2)
   - Since: not implemented
 
 - MKT-5a: The files of a plugin are everything under `plugins/<name>/` except
@@ -172,7 +172,7 @@ not a formality.
   Tests are not installed behaviour. The server path counts because users
   run the server code of the plugin's tag (MKT-2a).
 
-  - Test: scripts/sync_plugins.py --check-bump <target ref> (AC-2)
+  - Test: `scripts/sync_plugins.py --check-bump <target ref>` (AC-2)
   - Since: not implemented
 
 - MKT-6: Every version in the registry MUST have a section `## <version>` in
@@ -238,7 +238,7 @@ would need a paid API key.
   committed. The check exists because skills are written on a personal
   machine and a stray path leaks the account name.
 
-  - Test: CI job `pre-commit` (AC-4)
+  - Test: tools/kapitan-mcp/tests/unit/test_repo_hygiene.py; CI job `pre-commit` (AC-4)
   - Since: not implemented
 
 - MKT-10: CI on every pull request MUST run pre-commit on all files, the
@@ -288,7 +288,8 @@ would need a paid API key.
 - AC-4 (MKT-9, MKT-10): the home-path hook fails on a temporary file whose
   content is generated at test time as a home prefix joined with a literal
   user name, for both `/home` and `/Users`, and passes on this repository.
-  Check: CI job `pre-commit`
+  Check: `tests/unit/test_repo_hygiene.py` reads the hook's regex from
+  `.pre-commit-config.yaml`; CI job `pre-commit` runs the hook on all files
 - AC-5 (MKT-2a): after the `kapitan-core` tag is pushed, the command in
   `plugins/kapitan-core/.mcp.json` starts the server.
   Check: manual
