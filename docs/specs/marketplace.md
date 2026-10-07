@@ -72,7 +72,7 @@ Related: [Claude Code plugin manifest reference](https://code.claude.com/docs/en
 ## Layout and manifests
 
 ```text
-.claude-plugin/marketplace.json      # Claude Code marketplace "agent-skills"
+.claude-plugin/marketplace.json      # Claude Code marketplace "moep90-skills"
 .cursor-plugin/marketplace.json      # Cursor marketplace
 .agents/plugins/marketplace.json     # Codex marketplace
 plugins/<name>/
@@ -120,6 +120,19 @@ has at least one skill, so Arena joins with its implementation.
 
   - Test: tests/test_plugin_cli.py (AC-1)
   - Since: not implemented
+
+- MKT-3a: The marketplace MUST be addable and its plugins installable with
+  `claude plugin marketplace add` and `claude plugin install`.
+
+  `claude plugin validate --strict` passed on the first release, but Claude
+  Code refused to add the marketplace: its name `agent-skills` is reserved
+  for Anthropic's own marketplaces. Only a real add catches that, so the
+  test adds the local checkout with an isolated `CLAUDE_CONFIG_DIR`. The
+  marketplace is therefore named `moep90-skills`; the repository keeps its
+  name.
+
+  - Test: tests/test_plugin_cli.py (AC-1)
+  - Since: this change
 
 - MKT-13: Every skill MUST pass `scripts/validate_skills.py`: the frontmatter
   `name` matches the directory, `description` is present and under 1024
@@ -191,8 +204,8 @@ states.
 
 | Host | Install |
 |---|---|
-| Claude Code | `/plugin marketplace add Moep90/agent-skills`, then `/plugin install <plugin>@agent-skills` |
-| Codex CLI | `codex plugin marketplace add Moep90/agent-skills`, then `codex plugin add <plugin>@agent-skills`; `codex plugin marketplace upgrade` fetches new versions |
+| Claude Code | `/plugin marketplace add Moep90/agent-skills`, then `/plugin install <plugin>@moep90-skills` |
+| Codex CLI | `codex plugin marketplace add Moep90/agent-skills`, then `codex plugin add <plugin>@moep90-skills`; `codex plugin marketplace upgrade` fetches new versions |
 | Cursor | Add the repository as a plugin marketplace in Cursor's plugin settings, then install the plugin |
 | OpenCode | Symlink `plugins/<plugin>/skills/<skill>` to `$HOME/.agents/skills/<skill>`. |
 
@@ -258,13 +271,14 @@ would need a paid API key.
 
 ## Verification
 
-- AC-1 (MKT-1, MKT-2, MKT-3, MKT-4, MKT-6, MKT-13):
+- AC-1 (MKT-1, MKT-2, MKT-3, MKT-3a, MKT-4, MKT-6, MKT-13):
   `python3 scripts/sync_plugins.py --check`, `make validate-skills` and the
   generator's unit tests pass on the repository. The unit tests fail on a
   registry with a non-SemVer version, a version without changelog section and
   a stale generated file.
   `test_plugin_cli.py` validates every plugin and the marketplace with
-  `claude plugin validate --strict`.
+  `claude plugin validate --strict`, adds the local checkout as a marketplace
+  and installs every plugin from it.
   Check: CI job `quality`; `make test-plugin-cli` locally
 - AC-2 (MKT-5, MKT-5a): unit tests build a temporary git repository and run
   the bump check. It fails when a skill changes without a bump. It passes when only `tests/` changes, when a new plugin is added at 0.1.0 and
@@ -313,7 +327,7 @@ host.
 | Value | Setting |
 |---|---|
 | GitHub repository | `Moep90/agent-skills`, public |
-| Marketplace name | `agent-skills` |
+| Marketplace name | `moep90-skills` |
 | Tag format | `{name}--v{version}` |
 | First versions | `kapitan-core` 0.1.0, `kapitan-generators` 0.1.0; Arena 0.1.0 when it joins |
 | Import source | `Moep90/agent-toolkit-for-kapitan` @ `5c1391b` |
