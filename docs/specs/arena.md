@@ -116,7 +116,7 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   The round cap is not a flag (ARENA-14). A flag is added once three rounds
   prove wrong in use.
 
-  - Test: tests/run.sh approved (AC-1)
+  - Test: tests/run.sh approved (AC-1); manual: AC-11 (partial: Claude model on OpenCode not run)
   - Since: this change
 
 - ARENA-1b: A run on a path that already exists MUST start with a review; a
@@ -136,7 +136,7 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   `--author codex` Codex writes and Claude reviews. Who runs in-session and
   who as a CLI process follows from the host, as described above.
 
-  - Test: tests/run.sh approved (AC-1); manual: AC-8
+  - Test: tests/run.sh approved (AC-1); manual: AC-8, AC-11 (partial: Claude model on OpenCode not run)
   - Since: this change
 
 - ARENA-3: A Codex reviewer MUST run as `codex exec --sandbox read-only`.
