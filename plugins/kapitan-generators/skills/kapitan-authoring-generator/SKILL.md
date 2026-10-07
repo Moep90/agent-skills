@@ -29,6 +29,7 @@ from kapitan.inputs.kadet import BaseModel, inventory, load_from_search_paths
 
 kgenlib = load_from_search_paths("kgenlib")  # shared SDK: BaseStore, decorators, mutations
 
+
 def main(input_params):
     inv = inventory(lazy=True)
     store = kgenlib.BaseStore()
@@ -50,8 +51,8 @@ The keys you put on the returned object decide the on-disk layout. The conventio
 kapicorp-style generator follows is `"{namespace}/{name}-{suffix}"`:
 
 ```python
-obj.root[f"{namespace}/{name}-deploy"] = deployment   # -> <output>/<namespace>/<name>-deploy.yml
-obj.root[f"{namespace}/{name}-svc"] = service          # -> <output>/<namespace>/<name>-svc.yml
+obj.root[f"{namespace}/{name}-deploy"] = deployment  # -> <output>/<namespace>/<name>-deploy.yml
+obj.root[f"{namespace}/{name}-svc"] = service  # -> <output>/<namespace>/<name>-svc.yml
 ```
 
 - The part before `/` becomes the output subfolder; the part after becomes the filename.

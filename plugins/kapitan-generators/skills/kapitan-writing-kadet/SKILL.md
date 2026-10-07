@@ -22,6 +22,7 @@ filenames to content:
 ```python
 from kapitan.inputs.kadet import BaseObj, inventory
 
+
 def main():
     inv = inventory()
     name = inv.parameters.name

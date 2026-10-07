@@ -1,2 +1,0 @@
-# scripts/ share the server's ruff settings; files under tools/kapitan-mcp/ use its pyproject.toml.
-extend = "tools/kapitan-mcp/pyproject.toml"

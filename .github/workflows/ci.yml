@@ -23,9 +23,9 @@ jobs:
         with:
           fetch-depth: 0 # the bump check needs the merge base with the target branch
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
-      - run: make -C . sync
+      - run: make sync
       - run: make lint
-      - run: make typecheck
+      - run: make test
       - run: make validate-skills
       - run: make check-plugins
       - name: Version bump check (spec MKT-5)
@@ -49,40 +49,5 @@ jobs:
         with:
           node-version: 22
       - run: npm install --global @anthropic-ai/claude-code@2.1.292
+      - run: make sync
       - run: make test-plugin-cli
-
-  test-matrix:
-    strategy:
-      fail-fast: false
-      matrix:
-        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
-      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
-        with:
-          python-version: ${{ matrix.python }}
-      - run: make test
-
-  # Single named gate over the whole matrix, so branch protection can require "test"
-  # without enumerating every python/os leg.
-  test:
-    needs: [test-matrix]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Require every test-matrix leg to pass
-        run: |
-          if [ "${{ needs.test-matrix.result }}" != "success" ]; then
-            echo "test-matrix did not succeed: ${{ needs.test-matrix.result }}"
-            exit 1
-          fi
-
-  integration:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
-      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
-      - run: uv --directory tools/kapitan-mcp sync --extra kapitan --extra test-backends
-      - run: uv --directory tools/kapitan-mcp run pytest -m "integration or e2e" --no-cov

@@ -1,7 +1,7 @@
 {
   "name": "kapitan-core",
   "version": "0.1.0",
-  "description": "Kapitan MCP server plus core skills: the inventory model, secret refs, and compile debugging.",
+  "description": "Core Kapitan skills: the inventory model, input types, secret refs, and compile debugging.",
   "author": {
     "name": "kapicorp",
     "url": "https://github.com/Moep90/agent-skills"
@@ -22,16 +22,14 @@
     "gitops"
   ],
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Kapitan Core",
-    "shortDescription": "Agent plugin with skills and an MCP server",
-    "longDescription": "Kapitan MCP server plus core skills: the inventory model, secret refs, and compile debugging.",
+    "shortDescription": "Agent plugin with skills",
+    "longDescription": "Core Kapitan skills: the inventory model, input types, secret refs, and compile debugging.",
     "developerName": "kapicorp",
     "category": "DevOps",
     "capabilities": [
-      "Read",
-      "Write"
+      "Read"
     ],
     "websiteURL": "https://github.com/Moep90/agent-skills"
   }

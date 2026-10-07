@@ -29,19 +29,26 @@ callable. Kapitan registers each with OmegaConf:
 def helm_block(obj):
     # obj is the resolved object passed in; return the compile/dependency fragment
     return {
-        "compile": [{
-            "input_type": "helm",
-            "input_paths": [obj["chart_dir"]],
-            "output_path": ".",
-            "helm_params": {"namespace": obj["namespace"], "release_name": obj["chart_name"]},
-            "helm_values": obj["helm_values"],
-        }],
-        "dependencies": [{
-            "type": "helm", "output_path": obj["chart_dir"],
-            "source": obj["source"], "version": obj["chart_version"],
-            "chart_name": obj["chart_name"],
-        }],
+        "compile": [
+            {
+                "input_type": "helm",
+                "input_paths": [obj["chart_dir"]],
+                "output_path": ".",
+                "helm_params": {"namespace": obj["namespace"], "release_name": obj["chart_name"]},
+                "helm_values": obj["helm_values"],
+            }
+        ],
+        "dependencies": [
+            {
+                "type": "helm",
+                "output_path": obj["chart_dir"],
+                "source": obj["source"],
+                "version": obj["chart_version"],
+                "chart_name": obj["chart_name"],
+            }
+        ],
     }
+
 
 def pass_resolvers():
     return {"helm_block": helm_block}

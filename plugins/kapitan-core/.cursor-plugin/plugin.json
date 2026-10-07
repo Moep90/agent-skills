@@ -2,7 +2,7 @@
   "name": "kapitan-core",
   "version": "0.1.0",
   "displayName": "Kapitan Core",
-  "description": "Kapitan MCP server plus core skills: the inventory model, secret refs, and compile debugging.",
+  "description": "Core Kapitan skills: the inventory model, input types, secret refs, and compile debugging.",
   "author": {
     "name": "kapicorp"
   },
@@ -22,6 +22,5 @@
     "config-management",
     "gitops"
   ],
-  "skills": "./skills/",
-  "mcpServers": "./.mcp.json"
+  "skills": "./skills/"
 }

@@ -4,11 +4,8 @@ Agent plugins for Claude Code, Codex CLI, Cursor and OpenCode, versioned per plu
 
 | Plugin | What it does | Version |
 |---|---|---|
-| `kapitan-core` | Kapitan MCP server plus skills for the inventory model, secret refs and compile debugging | see [CHANGELOG](plugins/kapitan-core/CHANGELOG.md) |
+| `kapitan-core` | Skills for the Kapitan inventory model, input types, secret refs and compile debugging | see [CHANGELOG](plugins/kapitan-core/CHANGELOG.md) |
 | `kapitan-generators` | Skills for the kapicorp Kubernetes and Terraform generators, kadet authoring and project scaffolding | see [CHANGELOG](plugins/kapitan-generators/CHANGELOG.md) |
-
-The Kapitan MCP server runs with `uvx`, so `uv` must be installed; see
-[docs/kapitan-mcp-server.md](docs/kapitan-mcp-server.md).
 
 ## Install
 
@@ -43,21 +40,17 @@ git clone https://github.com/Moep90/agent-skills.git
 ln -s "$PWD/agent-skills/plugins/kapitan-core/skills/kapitan-inventory-model" ~/.agents/skills/
 ```
 
-MCP servers are configured by hand in OpenCode, using the command in the plugin's
-`.mcp.json`.
-
 ## Versions and releases
 
 Each plugin has its own SemVer version and changelog. A release is the git tag
-`<plugin>--v<version>`. A plugin's MCP server is installed from the plugin's release tag, so a
-plugin version always runs the server code it was released with.
+`<plugin>--v<version>`.
 
 ## Development
 
 ```bash
 mise install          # pinned uv and pre-commit
-make sync             # server environment
-make all              # lint, typecheck, unit tests, skill validation, generator check
+make sync             # test environment
+make all              # lint, tests, skill validation, generator check
 make test-plugin-cli  # validate the marketplace with the real claude and codex CLIs
 ```
 

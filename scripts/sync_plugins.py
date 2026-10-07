@@ -6,9 +6,7 @@ Every plugin is described once in ``PLUGINS`` below. From that we generate:
 - the three root marketplace manifests, one per client that discovers plugins from a git
   repo: ``.claude-plugin/``, ``.cursor-plugin/``, and ``.agents/plugins/`` (Codex);
 - the per-plugin manifests each client reads: ``.claude-plugin/plugin.json``,
-  ``.cursor-plugin/plugin.json``, ``.codex-plugin/plugin.json``;
-- ``plugins/<name>/.mcp.json`` for a plugin with an MCP server, pinned to the plugin's
-  release tag so a plugin version always runs the server code it was released with.
+  ``.cursor-plugin/plugin.json``, ``.codex-plugin/plugin.json``.
 
 Skills live only in ``plugins/<name>/skills/``; nothing is copied.
 
@@ -46,7 +44,7 @@ PLUGINS: dict[str, dict[str, object]] = {
         "version": "0.1.0",
         "displayName": "Kapitan Core",
         "description": (
-            "Kapitan MCP server plus core skills: the inventory model, secret refs, and "
+            "Core Kapitan skills: the inventory model, input types, secret refs, and "
             "compile debugging."
         ),
         "author": "kapicorp",
@@ -64,12 +62,6 @@ PLUGINS: dict[str, dict[str, object]] = {
             "config-management",
             "gitops",
         ],
-        "mcp": {
-            "server": "kapitan",
-            "path": "tools/kapitan-mcp",
-            "entrypoint": "kapitan-mcp-server",
-            "with": ["kapitan"],
-        },
     },
     "kapitan-generators": {
         "version": "0.1.0",
@@ -91,13 +83,8 @@ PLUGINS: dict[str, dict[str, object]] = {
             "manifests",
             "config-management",
         ],
-        "mcp": None,
     },
 }
-
-
-def _tag(name: str, version: str) -> str:
-    return f"{name}--v{version}"
 
 
 def _claude_marketplace() -> dict[str, object]:
@@ -164,7 +151,7 @@ def _claude_plugin(name: str, p: dict[str, object]) -> dict[str, object]:
 
 
 def _cursor_plugin(name: str, p: dict[str, object]) -> dict[str, object]:
-    manifest: dict[str, object] = {
+    return {
         "name": name,
         "version": p["version"],
         "displayName": p["displayName"],
@@ -177,15 +164,10 @@ def _cursor_plugin(name: str, p: dict[str, object]) -> dict[str, object]:
         "keywords": p["keywords"],
         "skills": "./skills/",
     }
-    if p["mcp"]:
-        manifest["mcpServers"] = "./.mcp.json"
-    return manifest
 
 
 def _codex_plugin(name: str, p: dict[str, object]) -> dict[str, object]:
-    has_mcp = bool(p["mcp"])
-    short = "Agent plugin with skills" + (" and an MCP server" if has_mcp else "")
-    manifest: dict[str, object] = {
+    return {
         "name": name,
         "version": p["version"],
         "description": p["description"],
@@ -195,31 +177,16 @@ def _codex_plugin(name: str, p: dict[str, object]) -> dict[str, object]:
         "license": LICENSE,
         "keywords": p["keywords"],
         "skills": "./skills/",
+        "interface": {
+            "displayName": p["displayName"],
+            "shortDescription": "Agent plugin with skills",
+            "longDescription": p["description"],
+            "developerName": p["author"],
+            "category": p["categoryTitle"],
+            "capabilities": ["Read"],
+            "websiteURL": REPO_URL,
+        },
     }
-    if has_mcp:
-        manifest["mcpServers"] = "./.mcp.json"
-    manifest["interface"] = {
-        "displayName": p["displayName"],
-        "shortDescription": short,
-        "longDescription": p["description"],
-        "developerName": p["author"],
-        "category": p["categoryTitle"],
-        "capabilities": ["Read", "Write"] if has_mcp else ["Read"],
-        "websiteURL": REPO_URL,
-    }
-    return manifest
-
-
-def _mcp_config(name: str, p: dict[str, object]) -> dict[str, object]:
-    mcp = p["mcp"]
-    if not isinstance(mcp, dict):
-        raise TypeError(f"{name}: mcp must be a mapping")
-    source = f"git+{REPO_URL}.git@{_tag(name, str(p['version']))}#subdirectory={mcp['path']}"
-    args: list[str] = []
-    for extra in mcp["with"]:
-        args += ["--with", extra]
-    args += ["--from", source, mcp["entrypoint"]]
-    return {"mcpServers": {mcp["server"]: {"command": "uvx", "args": args}}}
 
 
 def _manifests(root: Path = ROOT) -> dict[Path, dict[str, object]]:
@@ -235,14 +202,6 @@ def _manifests(root: Path = ROOT) -> dict[Path, dict[str, object]]:
         files[base / ".cursor-plugin" / "plugin.json"] = _cursor_plugin(name, p)
         files[base / ".codex-plugin" / "plugin.json"] = _codex_plugin(name, p)
     return files
-
-
-def _mcp_files(root: Path = ROOT) -> dict[Path, dict[str, object]]:
-    return {
-        root / PLUGINS_DIR_NAME / name / ".mcp.json": _mcp_config(name, p)
-        for name, p in PLUGINS.items()
-        if p["mcp"]
-    }
 
 
 def _render(content: dict[str, object]) -> str:
@@ -267,8 +226,7 @@ def _version_problems(root: Path = ROOT) -> list[str]:
 
 def sync(check: bool, root: Path = ROOT) -> int:
     problems: list[str] = []
-    generated = {**_manifests(root), **_mcp_files(root)}
-    for path, content in generated.items():
+    for path, content in _manifests(root).items():
         rendered = _render(content)
         rel = path.relative_to(root)
         if check:
@@ -296,17 +254,10 @@ def _version_tuple(version: str) -> tuple[int, ...]:
     return tuple(int(part) for part in version.split("."))
 
 
-def _plugin_paths(name: str) -> list[str]:
-    """Paths whose changes require a version bump of ``name`` (spec MKT-5a)."""
-    paths = [f"{PLUGINS_DIR_NAME}/{name}/"]
-    mcp = PLUGINS.get(name, {}).get("mcp")
-    if isinstance(mcp, dict):
-        paths.append(f"{mcp['path']}/")
-    return paths
-
-
-def _is_plugin_file(path: str, prefixes: list[str]) -> bool:
-    return any(path.startswith(p) and not path.startswith(f"{p}tests/") for p in prefixes)
+def _is_plugin_file(path: str, name: str) -> bool:
+    """Whether a change to ``path`` requires a version bump of ``name`` (spec MKT-5a)."""
+    prefix = f"{PLUGINS_DIR_NAME}/{name}/"
+    return path.startswith(prefix) and not path.startswith(f"{prefix}tests/")
 
 
 def check_bump(ref: str, root: Path = ROOT) -> int:
@@ -319,7 +270,7 @@ def check_bump(ref: str, root: Path = ROOT) -> int:
     plugins_dir = root / PLUGINS_DIR_NAME
     for manifest in sorted(plugins_dir.glob("*/.claude-plugin/plugin.json")):
         name = manifest.parent.parent.name
-        if not any(_is_plugin_file(f, _plugin_paths(name)) for f in changed):
+        if not any(_is_plugin_file(f, name) for f in changed):
             continue
         rel = manifest.relative_to(root).as_posix()
         old = _git(root, "show", f"{ref}:{rel}")

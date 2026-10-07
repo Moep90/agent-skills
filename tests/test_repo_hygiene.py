@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def _home_path_regex() -> re.Pattern[str]:

@@ -1,35 +1,26 @@
-MCP_DIR := tools/kapitan-mcp
-UV := uv --directory $(MCP_DIR)
-
-.PHONY: help sync lint format typecheck test test-integration test-plugin-cli evals all \
-        sync-plugins check-plugins check-bump validate-skills
+.PHONY: help sync lint format test test-plugin-cli sync-plugins check-plugins check-bump \
+        validate-skills all
 
 help:
-	@echo "Targets: sync lint format typecheck test test-integration test-plugin-cli evals all"
+	@echo "Targets: sync lint format test test-plugin-cli all"
 	@echo "         sync-plugins check-plugins check-bump validate-skills"
 
 sync:
-	$(UV) sync
+	uv sync --locked
 
 lint:
-	$(UV) run ruff check . ../../scripts --config pyproject.toml
-	$(UV) run ruff format --check . ../../scripts --config pyproject.toml
+	uv run --locked ruff check .
+	uv run --locked ruff format --check .
 
 format:
-	$(UV) run ruff format . ../../scripts --config pyproject.toml
-	$(UV) run ruff check --fix . ../../scripts --config pyproject.toml
-
-typecheck:
-	$(UV) run mypy
+	uv run --locked ruff format .
+	uv run --locked ruff check --fix .
 
 test:
-	$(UV) run pytest -m "not integration and not e2e and not plugin_cli"
-
-test-integration:
-	$(UV) run --extra kapitan --extra test-backends pytest -m integration --no-cov
+	uv run --locked pytest -m "not plugin_cli"
 
 test-plugin-cli:
-	$(UV) run pytest -m plugin_cli --no-cov
+	uv run --locked pytest -m plugin_cli
 
 validate-skills:
 	python3 scripts/validate_skills.py
@@ -43,7 +34,4 @@ check-plugins:
 check-bump:
 	python3 scripts/sync_plugins.py --check-bump $${BASE:-origin/main}
 
-evals:
-	@echo "trigger-rate evals run via the skill-creator harness with an API key"
-
-all: lint typecheck test validate-skills check-plugins
+all: lint test validate-skills check-plugins

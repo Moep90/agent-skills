@@ -1,8 +1,7 @@
 agent-skills
 Copyright 2026 Moep90 and contributors
 
-The Kapitan plugins (plugins/kapitan-core, plugins/kapitan-generators) and the
-Kapitan MCP server (tools/kapitan-mcp) were imported from
+The Kapitan plugins (plugins/kapitan-core, plugins/kapitan-generators) were imported from
 agent-toolkit-for-kapitan, which carries this notice:
 
   agent-toolkit-for-kapitan
