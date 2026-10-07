@@ -1,0 +1,11 @@
+# Pinned dev toolchain. Run `mise install` once, then `mise activate` (or direnv) so the
+# pinned go/uv/pre-commit are on PATH. mise's go sets a correct GOROOT, which fixes the
+# actionlint pre-commit hook on machines with a stale GOROOT export. CI does not use mise.
+[tools]
+go = "1.26"
+uv = "0.11"
+pre-commit = "4.6"
+
+[tasks.gate]
+description = "Full CI quality + test gate (same as the pre-push hook)"
+run = "make lint typecheck check-plugins test"

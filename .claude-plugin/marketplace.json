@@ -1,0 +1,45 @@
+{
+  "name": "agent-skills",
+  "owner": {
+    "name": "Moep90"
+  },
+  "metadata": {
+    "description": "Agent plugins for Claude Code, Codex CLI, Cursor and OpenCode."
+  },
+  "plugins": [
+    {
+      "name": "kapitan-core",
+      "source": "./plugins/kapitan-core",
+      "description": "Core Kapitan skills: the inventory model, input types, secret refs, and compile debugging.",
+      "category": "devops",
+      "keywords": [
+        "kapitan",
+        "inventory",
+        "reclass",
+        "omegaconf",
+        "secrets",
+        "refs",
+        "compile",
+        "kubernetes",
+        "config-management",
+        "gitops"
+      ]
+    },
+    {
+      "name": "kapitan-generators",
+      "source": "./plugins/kapitan-generators",
+      "description": "Skills for the kapicorp Kubernetes and Terraform generators, kadet authoring, and project scaffolding.",
+      "category": "devops",
+      "keywords": [
+        "kapitan",
+        "kadet",
+        "generators",
+        "kubernetes",
+        "terraform",
+        "scaffolding",
+        "manifests",
+        "config-management"
+      ]
+    }
+  ]
+}

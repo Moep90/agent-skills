@@ -1,0 +1,4 @@
+title = "agent-skills gitleaks config"
+
+[extend]
+useDefault = true

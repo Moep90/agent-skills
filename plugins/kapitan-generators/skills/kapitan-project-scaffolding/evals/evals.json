@@ -1,0 +1,21 @@
+{
+  "skill": "kapitan-project-scaffolding",
+  "cases": [
+    {
+      "prompt": "Start a new Kapitan project. What directories do I need?",
+      "expect": ["inventory/targets", "inventory/classes", "components", "compiled"]
+    },
+    {
+      "prompt": "Where should a new reusable config block live versus something that compiles?",
+      "expect": ["class under inventory/classes", "target under inventory/targets"]
+    },
+    {
+      "prompt": "Why is kapitan on my PATH a shell script?",
+      "expect": ["./kapitan wrapper", "Docker", "pinned version"]
+    },
+    {
+      "prompt": "What is in the system/ directory?",
+      "expect": ["fetched generators", "libraries", "vendored"]
+    }
+  ]
+}

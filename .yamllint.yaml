@@ -1,0 +1,13 @@
+extends: default
+
+rules:
+  line-length:
+    max: 120
+    level: warning
+  document-start: disable
+  truthy:
+    check-keys: false
+
+ignore: |
+  tools/kapitan-mcp/tests/fixtures/
+  .venv/

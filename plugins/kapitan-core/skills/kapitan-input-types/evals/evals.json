@@ -1,0 +1,21 @@
+{
+  "skill": "kapitan-input-types",
+  "cases": [
+    {
+      "prompt": "What input types can a Kapitan compile entry use?",
+      "expect": ["input_type", "jinja2", "kadet", "helm"]
+    },
+    {
+      "prompt": "I need to run an external binary to produce some manifests during compile. Which input?",
+      "expect": ["external", "command", "input_type"]
+    },
+    {
+      "prompt": "How do I copy a static file into the compiled output unchanged?",
+      "expect": ["copy", "input_type", "output_path"]
+    },
+    {
+      "prompt": "Which input should I use to build Kubernetes manifests in Python?",
+      "expect": ["kadet", "kapitan-writing-kadet"]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+# Pin `rev`s are refreshed by Renovate. Bump to the current release when adding hooks.
+# Framework hooks below run on commit only; the push stage runs just the ci-gate hook.
+default_stages: [pre-commit]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: check-yaml
+      - id: check-json
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.10
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.14.0
+    hooks:
+      - id: markdownlint-cli2
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.4
+    hooks:
+      - id: actionlint
+  # Absolute home paths leak the account name of the machine a file was written on
+  # (spec MKT-9). Write user paths with a placeholder such as /home/<user>.
+  - repo: local
+    hooks:
+      - id: no-home-paths
+        name: reject absolute home paths
+        language: pygrep
+        entry: '(/home|/Users)/[A-Za-z0-9._-]+'
+  # Push-stage gate mirroring the CI quality + test jobs. Commit-stage ruff only sees
+  # changed files and never runs the tests, so this catches what reaches main otherwise.
+  - repo: local
+    hooks:
+      - id: ci-gate
+        name: make all
+        entry: make all
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

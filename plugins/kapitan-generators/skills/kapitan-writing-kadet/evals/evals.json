@@ -1,0 +1,21 @@
+{
+  "skill": "kapitan-writing-kadet",
+  "cases": [
+    {
+      "prompt": "Write a kadet component that generates a Deployment named from the inventory.",
+      "expect": ["from kapitan.inputs.kadet import", "inventory()", "BaseObj", "def main"]
+    },
+    {
+      "prompt": "How do I read a target's resolved parameters inside a kadet component?",
+      "expect": ["inventory()", "already merged"]
+    },
+    {
+      "prompt": "How do I unit-test a kadet component?",
+      "expect": ["import the module", "call main", "assert"]
+    },
+    {
+      "prompt": "When should I use BaseModel instead of BaseObj?",
+      "expect": ["typed", "validated", "schema"]
+    }
+  ]
+}

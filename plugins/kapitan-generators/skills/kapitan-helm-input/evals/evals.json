@@ -1,0 +1,21 @@
+{
+  "skill": "kapitan-helm-input",
+  "cases": [
+    {
+      "prompt": "How do I render the cert-manager Helm chart through Kapitan without vendoring it?",
+      "expect": ["input_type: helm", "type: helm", "dependencies", "chart_version"]
+    },
+    {
+      "prompt": "Where do I set the values passed to a Helm chart in the inventory?",
+      "expect": ["helm_values", "helm_params", "release_name"]
+    },
+    {
+      "prompt": "My helm compile renders nothing. What's the likely cause?",
+      "expect": ["chart_dir", "fetch", "output_path"]
+    },
+    {
+      "prompt": "How do I upgrade a chart to a newer version?",
+      "expect": ["chart_version", "fetch", "kapitan_compile_diff"]
+    }
+  ]
+}

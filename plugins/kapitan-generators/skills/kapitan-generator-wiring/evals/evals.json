@@ -1,0 +1,21 @@
+{
+  "skill": "kapitan-generator-wiring",
+  "cases": [
+    {
+      "prompt": "I added a components block but kapitan compile produces no manifests and no error. What's wrong?",
+      "expect": ["compile entry", "input_type: kadet", "target", "silent"]
+    },
+    {
+      "prompt": "Where do argocd applications go in the inventory, under generators.argocd?",
+      "expect": ["argocd_applications", "sibling", "key"]
+    },
+    {
+      "prompt": "How do I check that a generator block is actually wired into a target?",
+      "expect": ["kapitan_generator_trace", "kapitan_class_hierarchy", "compile entry"]
+    },
+    {
+      "prompt": "What are all the steps to get a new component to emit output?",
+      "expect": ["data block", "compile entry", "class", "target"]
+    }
+  ]
+}

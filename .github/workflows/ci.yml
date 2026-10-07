@@ -1,0 +1,53 @@
+name: CI
+
+# All third-party actions are pinned to a full commit SHA with a version comment.
+# Renovate updates both the SHA and the comment.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          fetch-depth: 0 # the bump check needs the merge base with the target branch
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - run: make sync
+      - run: make lint
+      - run: make test
+      - run: make validate-skills
+      - run: make check-plugins
+      - name: Version bump check (spec MKT-5)
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/sync_plugins.py --check-bump "origin/${{ github.base_ref }}"
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - run: uvx pre-commit@4.6.2 run --all-files --show-diff-on-failure
+
+  # claude plugin validate needs no login (spec MKT-3); the codex test skips without codex.
+  plugin-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm install --global @anthropic-ai/claude-code@2.1.292
+      - run: make sync
+      - run: make test-plugin-cli

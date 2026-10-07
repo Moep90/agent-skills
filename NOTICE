@@ -1,0 +1,13 @@
+agent-skills
+Copyright 2026 Moep90 and contributors
+
+The Kapitan plugins (plugins/kapitan-core, plugins/kapitan-generators) were imported from
+agent-toolkit-for-kapitan, which carries this notice:
+
+  agent-toolkit-for-kapitan
+  Copyright 2026 kapicorp and contributors
+
+  This product includes software developed by kapicorp and the Kapitan community
+  (https://kapitan.dev).
+
+Licensed under the Apache License, Version 2.0. See the LICENSE file.
