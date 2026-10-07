@@ -17,7 +17,12 @@ You are the host. You orchestrate the loop and enforce this protocol. You never 
 artifact's quality yourself; verdicts come only from the reviewer. Follow the steps in order.
 
 Fixed values: Codex model `gpt-6.1-sol`, reasoning effort `medium`, at most 3 reviews per
-run, at most 1 contract retry per review, 590 seconds per call (below the 10-minute limit of one Bash call, so this timeout fires first). Never resume a CLI session.
+run, at most 1 contract retry per review, 590 seconds per call. Never resume a CLI session.
+
+Give every author and reviewer call a shell-tool timeout of at least 600 seconds (600000 ms
+in Claude Code), so that `timeout 590` fires first. Shell variables do not survive between
+separate shell calls: run every command with the literal values of `RUN`, `R` and `TARGET`
+substituted, or prefix the assignments in the same command.
 
 ## 0. Hermes Agent
 
@@ -82,7 +87,7 @@ Create the run directory and remember its path as `RUN`:
 RUN=$(mktemp -d) && : > "$RUN/ledger.md" && echo "$RUN"
 ```
 
-Write the frozen rubric to `$RUN/rubric.md` and the task to `$RUN/task.md`.
+`TARGET` is the target path. Write the frozen rubric to `$RUN/rubric.md` and the task to `$RUN/task.md`.
 
 ## 4. Rubrics
 
@@ -104,7 +109,7 @@ then reviews. A path run starts with a review.
 1. `R = R + 1`.
 2. For rubric `code`: run the project's tests and linter (from its Makefile, package
    scripts or CI config), save the output to `$RUN/validation-$R.txt` and add one ledger line
-   `VALIDATION review $R: <command> exited <code>, see validation-$R.txt`. Failing checks do
+   `VALIDATION review $R: <command> exited <code>, see $RUN/validation-$R.txt`. Failing checks do
    not stop the run; they are evidence for the reviewer. If they cannot run, record the error
    the same way.
 3. Write the review prompt (section 7) to `$RUN/review-$R.prompt`.
@@ -120,11 +125,13 @@ then reviews. A path run starts with a review.
    - the file is empty, or its first non-empty line is not exactly `VERDICT: APPROVED`,
      `VERDICT: REVISE` or `VERDICT: BLOCKED` (any text, code fence or heading before it
      counts as broken);
-   - another non-empty line does not have exactly five fields separated by `|`: an ID that
+   - another non-empty line does not have at least five fields separated by `|` (the fifth field, problem and fix, runs
+     to the end of the line and may contain `|`): an ID that
      is `new` or an ID present in the ledger, `blocking` or `minor`, `criterion: <name>`,
      a location, the problem with a suggested fix;
    - the verdict is `APPROVED` and a line is `blocking`;
    - the verdict is `REVISE` and no line is `blocking`.
+
    On the first break, repeat this review once with the same `R`: append to the prompt
    "Your previous answer broke the output contract: `<reason>`. Answer again, following the
    contract exactly." On a second break of the same review, stop (section 8) and report the
@@ -169,9 +176,15 @@ in the ledger to `status: fixed | <what changed>` or `status: rejected | <reason
 4. Read the author's disposition lines at the end of its reply, `<ID> | fixed` or
    `<ID> | rejected | <reason>`, and update the ledger. A finding without a disposition
    stays `open`.
-5. Compare the target hash with `$RUN/hash-before-$R`. If it is unchanged, stop (section 8)
-   unless this is not the first author step and every open blocking finding is now
-   `rejected`.
+5. Compute the hash again and compare:
+
+   ```bash
+   find "$TARGET" -type f -print0 2>/dev/null | sort -z | xargs -0 sha256sum 2>/dev/null | sha256sum > "$RUN/hash-after-$R"
+   cmp -s "$RUN/hash-before-$R" "$RUN/hash-after-$R"
+   ```
+
+   If `cmp` exits 0 the target is unchanged: stop (section 8), unless at least one blocking
+   finding was open before this author step and every one of them is now `rejected`.
 6. Find changes outside the target:
 
    ```bash
