@@ -54,6 +54,21 @@
         "manifests",
         "config-management"
       ]
+    },
+    {
+      "name": "kapitan-recipes",
+      "source": "./plugins/kapitan-recipes",
+      "description": "Migrate a Helm chart or Kustomize base to a Kapitan recipe on kadet-hub generators and prove it renders the same objects.",
+      "category": "devops",
+      "keywords": [
+        "kapitan",
+        "kadet-hub",
+        "recipe",
+        "helm",
+        "kustomize",
+        "migration",
+        "kubernetes"
+      ]
     }
   ]
 }
