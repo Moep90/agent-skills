@@ -254,8 +254,9 @@ Write the inventory the way kadet-hub's authoring guide asks:
 - A component's `service` needs at least one key. An empty `service: {}` renders no Service.
 - A `service_accounts` entry without a namespace resolves to the Role's namespace. For a Role
   in another namespace, write `${namespace}/<sa>`.
-- RBAC entries may repeat `cluster_wide` and `service_accounts` where the generator offers no
-  way to share them.
+- Put the rules of one ServiceAccount's ClusterRoles into one `rbac` entry. It grants the same
+  permissions as the chart's separate roles with fewer lines, and keeping the chart's role
+  names is not a goal. List the renamed or merged roles in the README.
 - A recipe contains only parameters, `kadet` entries for the pinned generators, `copy`
   entries for vendored files with their SHA-256, and those generators' `oci` dependencies.
   It does not use `from_file` or `write`.
