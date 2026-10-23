@@ -70,7 +70,8 @@ an output that changes between runs, so do not continue without one.
 
 Read `https://kadet-hub.org/catalog.json`. Each entry in `generators` has `name`, `kinds`,
 `readme`, and `latest` with `version` and `digest`. The top-level `kinds` index is keyed by
-API group, `core` for the core group, then the lowercase kind. Match on its `rendered` list,
+API group, then the lowercase kind. The core group is `core`. An apiVersion without a group
+other than `v1`, such as Talos' `v1alpha1`, is keyed by that version. Match on its `rendered` list,
 the generators that render the kind. `schema` only lists generators that validate it.
 
 Write one row per generator entry, listing the objects it renders:
