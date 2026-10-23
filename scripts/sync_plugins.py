@@ -96,6 +96,26 @@ PLUGINS: dict[str, dict[str, object]] = {
             "config-management",
         ],
     },
+    "kapitan-recipes": {
+        "version": "0.1.0",
+        "displayName": "Kapitan Recipes",
+        "description": (
+            "Migrate a Helm chart or Kustomize base to a Kapitan recipe on kadet-hub "
+            "generators and prove it renders the same objects."
+        ),
+        "author": "Moep90",
+        "category": "devops",
+        "categoryTitle": "DevOps",
+        "keywords": [
+            "kapitan",
+            "kadet-hub",
+            "recipe",
+            "helm",
+            "kustomize",
+            "migration",
+            "kubernetes",
+        ],
+    },
 }
 
 

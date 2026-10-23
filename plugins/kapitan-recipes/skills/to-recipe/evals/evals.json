@@ -1,0 +1,25 @@
+{
+  "skill": "to-recipe",
+  "cases": [
+    {
+      "prompt": "Replace the metrics-server Helm chart 3.14.0 with Kapitan inventory, using our values.yaml.",
+      "expect": ["helm template", "catalog.json", "inventory/classes/recipes/", "--dry-run=server"]
+    },
+    {
+      "prompt": "Convert this kustomization to a Kapitan recipe on kadet-hub generators.",
+      "expect": ["kustomize build", "render.yaml", "kinds", "sha256"]
+    },
+    {
+      "prompt": "The chart renders a custom resource no kadet-hub generator knows. What now?",
+      "expect": ["gap", "generator request", "wanted", "no recipe"]
+    },
+    {
+      "prompt": "Which kadet-hub generator renders the Deployment and Service of this chart?",
+      "expect": ["catalog.json", "kinds", "readme"]
+    },
+    {
+      "prompt": "Prove that my Kapitan recipe renders the same objects as the chart.",
+      "expect": ["--dry-run=server", "normalize", "auth can-i --list", "did not run"]
+    }
+  ]
+}

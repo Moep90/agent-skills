@@ -36,6 +36,17 @@
         "installation": "AVAILABLE"
       },
       "category": "DevOps"
+    },
+    {
+      "name": "kapitan-recipes",
+      "source": {
+        "source": "local",
+        "path": "./plugins/kapitan-recipes"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "DevOps"
     }
   ]
 }

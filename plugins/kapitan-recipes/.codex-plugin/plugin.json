@@ -1,0 +1,33 @@
+{
+  "name": "kapitan-recipes",
+  "version": "0.1.0",
+  "description": "Migrate a Helm chart or Kustomize base to a Kapitan recipe on kadet-hub generators and prove it renders the same objects.",
+  "author": {
+    "name": "Moep90",
+    "url": "https://github.com/Moep90/agent-skills"
+  },
+  "homepage": "https://github.com/Moep90/agent-skills",
+  "repository": "https://github.com/Moep90/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "kapitan",
+    "kadet-hub",
+    "recipe",
+    "helm",
+    "kustomize",
+    "migration",
+    "kubernetes"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Kapitan Recipes",
+    "shortDescription": "Agent plugin with skills",
+    "longDescription": "Migrate a Helm chart or Kustomize base to a Kapitan recipe on kadet-hub generators and prove it renders the same objects.",
+    "developerName": "Moep90",
+    "category": "DevOps",
+    "capabilities": [
+      "Read"
+    ],
+    "websiteURL": "https://github.com/Moep90/agent-skills"
+  }
+}
