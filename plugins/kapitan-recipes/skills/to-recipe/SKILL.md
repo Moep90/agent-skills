@@ -212,9 +212,11 @@ parameters:
 The release name shapes the chart's object names. Write it literally in the recipe's names.
 
 A list set in the target is appended to the list the recipe sets, so a user cannot change one
-element of the recipe's `args` from the target. Every value the README offers as a setting,
-and every value used in more than one place, such as a leader-election namespace, is a
-parameter under `applications.<name>` that the recipe interpolates:
+of its elements from the target. With the `kubernetes` generator 1.7.0 or later, write `args`
+as a mapping instead: values render in mapping order, a list value gives several arguments,
+and a target changes one argument by its key or drops it with `~`. Every value the README
+offers as a setting, and every value used in more than one place, such as a leader-election
+namespace, is a parameter under `applications.<name>` that the recipe interpolates:
 
 ```yaml
 applications:
@@ -223,7 +225,7 @@ applications:
 components:
   <name>:
     args:
-      - --v=${applications.<name>.log_level}
+      verbosity: --v=${applications.<name>.log_level}
 ```
 
 To replace a whole list, a user sets the key to `~` (null) in a class included after the
