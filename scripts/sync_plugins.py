@@ -97,7 +97,7 @@ PLUGINS: dict[str, dict[str, object]] = {
         ],
     },
     "kapitan-recipes": {
-        "version": "0.1.0",
+        "version": "0.1.1",
         "displayName": "Kapitan Recipes",
         "description": (
             "Migrate a Helm chart or Kustomize base to a Kapitan recipe on kadet-hub "
