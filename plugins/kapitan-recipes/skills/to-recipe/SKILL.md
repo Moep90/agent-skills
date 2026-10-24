@@ -140,12 +140,12 @@ kadet-hub/recipes RCP-37 holds this table. Where the two differ, RCP-37 wins.
 | Compose | Recipe |
 |---|---|
 | `services.<service>` | a component: a Deployment, or a StatefulSet if it mounts a named volume |
-| `image` | `image` as `tag@sha256:<digest>` of the multi-arch index. Pin `latest` or a missing tag to the version it resolves to now, and name it in the README. |
+| `image` | `image` as `tag@sha256:<digest>` of the multi-arch index. Pin `latest` or a missing tag to the most specific version tag with the same digest now, and name it in the README. |
 | `entrypoint`, `command` | `command`, `args`. Split a string as `docker compose` does. |
-| `environment`, `env_file` | `env`. A credential becomes a key of the component's `secrets`, referenced with `secretKeyRef`, whose value is a parameter under `applications.<name>` that the recipe leaves unset. |
+| `environment`, `env_file` | `env`. A credential, or a value that contains one such as a database URL, becomes a key of the component's `secrets`, referenced with `secretKeyRef`, whose value is a parameter under `applications.<name>` that the recipe leaves unset. |
 | `ports` | a port with `container_port` and `service_port`, `service.type: ClusterIP`. The published port is the Service port. Drop a host IP. |
 | `expose`, and ports other services connect to | a port with `service_port`. A compose network reaches every port, so declare a port the others use even without `expose`. |
-| `healthcheck` | `healthcheck.readiness` of `type: command`, `CMD-SHELL` as `sh -c`. `interval`, `timeout`, `retries` become period, timeout and failure threshold. Write the compose defaults 30s, 30s and 3 where the generator's differ. No liveness probe, because compose never restarts an unhealthy container. Drop `start_period` and `start_interval`. `disable: true` renders none. |
+| `healthcheck` | `healthcheck.readiness` of `type: command`, `CMD` as the command list, `CMD-SHELL` as `sh -c`. `interval`, `timeout`, `retries` become period, timeout and failure threshold. Write the compose defaults 30s, 30s and 3 where the generator's differ. No liveness probe, because compose never restarts an unhealthy container. Drop `start_period` and `start_interval`. `disable: true` renders none. |
 | `depends_on` | nothing. The dependency's readiness keeps its Service without endpoints, and the dependent restarts until it connects. Add no init container. |
 | `deploy.replicas` | `replicas` |
 | `deploy.resources` | `resources`: `limits` from `limits`, `requests` from `reservations`. `512M` is `512Mi`. |
@@ -298,7 +298,7 @@ Write the inventory the way kadet-hub's authoring guide asks:
   `kubernetes` generator: it gives a webhook a `namespaceSelector` that excludes its own
   namespace, set `namespaceSelector: {}` where the source has none; it derives `appProtocol`
   from a port named `https`, set `app_protocol: ""` where the source has none.
-- A component's `service` needs at least one key. An empty `service: {}` renders no Service.
+- `service: {}` renders a Service with the API defaults, `service: null` none (`kubernetes` 1.7.0).
 - A `service_accounts` entry without a namespace resolves to the Role's namespace. For a Role
   in another namespace, write `${namespace}/<sa>`.
 - Keep the chart's split into separate roles: one `rbac` entry per role the chart renders, under
