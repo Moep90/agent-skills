@@ -104,7 +104,7 @@ meant.
   (RCP-23) and checks the SHA-256.
 
   - Test: manual: AC-5
-  - Since: this change
+  - Since: #8
 
 ## Mapping to generators
 
@@ -153,7 +153,7 @@ then checked against the generator's README for the fields it needs.
   RCP-37 wins (DEC-5).
 
   - Test: manual: AC-5, AC-6
-  - Since: this change
+  - Since: #8
 
 ## Recipe layout
 
@@ -201,7 +201,7 @@ recipe of its own and the parent includes it.
   skill MUST NOT report it as `renders`.
 
   - Test: manual: AC-5
-  - Since: this change
+  - Since: #8
 
 ## Verification
 
