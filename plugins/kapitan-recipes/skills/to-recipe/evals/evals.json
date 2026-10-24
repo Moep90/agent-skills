@@ -20,6 +20,10 @@
     {
       "prompt": "Prove that my Kapitan recipe renders the same objects as the chart.",
       "expect": ["--dry-run=server", "normalize", "auth can-i --list", "did not run"]
+    },
+    {
+      "prompt": "Migrate this docker-compose.yml with a web app and PostgreSQL to a Kapitan recipe.",
+      "expect": ["docker compose config", "SHA-256", "deploys", "smoke", "gap"]
     }
   ]
 }
