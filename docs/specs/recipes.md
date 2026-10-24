@@ -1,4 +1,4 @@
-# Recipes: migrating a Helm chart or Kustomize base to Kapitan
+# Recipes: migrating a Helm chart, Kustomize base or Compose file to Kapitan
 
 ```text
 Status: Draft
@@ -51,15 +51,25 @@ once, in kadet-hub/recipes `docs/specs/recipes.md` (`RCP-`). This spec
 covers only how the skill gets there, and the skill defers to `RCP-` where
 the two disagree.
 
+DEC-6: A Docker Compose file is a third kind of source in the same skill,
+and its recipe is proven at `deploys` only (RCP-37 to RCP-39 in
+kadet-hub/recipes). Mapping to generators and writing the recipe are the
+same work as for a chart. What differs is the reference: a compose file
+has no Kubernetes objects, and kompose output was rejected as one because
+it is a heuristic translation itself. The skill therefore maps each
+compose key by the table of RCP-37, stops on its gaps, and proves the
+recipe by deploying it with a smoke test.
+
 Related: [kadet-hub authoring guide](https://github.com/kadet-hub/registry/blob/main/docs/authors.md),
 [chart-vs-kapitan](https://github.com/kadet-hub/examples/tree/main/chart-vs-kapitan)
 
 ## Sources and render step
 
 The skill accepts a chart (directory, `.tgz`, repository or OCI reference
-with a version), a Kustomize directory, or a git repository. In a
-repository it looks for `Chart.yaml` and `kustomization.yaml`; with more
-than one candidate it asks which one is meant.
+with a version), a Kustomize directory, a Docker Compose file, or a git
+repository. In a repository it looks for `Chart.yaml`, `kustomization.yaml`
+and compose files; with more than one candidate it asks which one is
+meant.
 
 - REC-1: The skill MUST render the source pinned to an exact version or
   commit, with the user's values or overlay, and keep that output as the
@@ -84,6 +94,17 @@ than one candidate it asks which one is meant.
 
   - Test: manual: AC-1
   - Since: not implemented
+
+- REC-9: A compose file MUST be pinned by repository, full commit SHA and
+  the file's SHA-256, and its variables resolved to their defaults, as
+  `docker compose config` resolves them without an `.env` file. The
+  resolved file is the reference for the mapping.
+
+  kadet-hub/recipes writes the pin as the README's compose `Source` line
+  (RCP-23) and checks the SHA-256.
+
+  - Test: manual: AC-5
+  - Since: this change
 
 ## Mapping to generators
 
@@ -123,6 +144,16 @@ then checked against the generator's README for the fields it needs.
 
   - Test: manual: AC-2
   - Since: not implemented
+
+- REC-10: Every key of a compose file MUST map as the table of RCP-37
+  says, and a gap listed there, or a key the table does not map, MUST stop
+  the migration as REC-5 does.
+
+  The skill carries the table in step 3. Where it and RCP-37 disagree,
+  RCP-37 wins (DEC-5).
+
+  - Test: manual: AC-5, AC-6
+  - Since: this change
 
 ## Recipe layout
 
@@ -164,6 +195,14 @@ recipe of its own and the parent includes it.
   - Test: manual: AC-1, AC-3
   - Since: not implemented
 
+- REC-11: A compose recipe MUST be proven at level `deploys` only: no
+  comparison, the recipe-side checks of RCP-38, a deploy on kind and a
+  smoke test that checks what the compose file sets up (RCP-39). The
+  skill MUST NOT report it as `renders`.
+
+  - Test: manual: AC-5
+  - Since: this change
+
 ## Verification
 
 - AC-1 (REC-1, REC-2, REC-3, REC-4, REC-6, REC-7): running the skill on the
@@ -177,6 +216,14 @@ recipe of its own and the parent includes it.
   Check: manual
 - AC-3 (REC-7): without a reachable cluster the report states that the
   comparison did not run.
+  Check: manual
+- AC-5 (REC-9, REC-10, REC-11): running the skill on
+  `contrib/docker-compose/basic.yml` of Miniflux 2.3.4 produces a recipe
+  that passes `check miniflux --level deploys`.
+  Check: manual, against `miniflux/` in kadet-hub/recipes#8
+- AC-6 (REC-10): running the skill on a compose file with a `build:`
+  service or a host bind mount stops with a gap report and writes no
+  recipe.
   Check: manual
 - AC-4: `scripts/validate_skills.py` passes on the skill and its
   `evals/evals.json` (marketplace.md MKT-13).
@@ -197,6 +244,6 @@ None. Publishing (former OQ-1) moved to kadet-hub/recipes.
 
 | Value | Setting |
 |---|---|
-| Plugin | `kapitan-recipes` 0.1.0, category `devops` |
+| Plugin | `kapitan-recipes` 0.2.0, category `devops` |
 | Skill | `to-recipe`, category `workflow` |
 | Generator source | `https://kadet-hub.org/catalog.json` |
