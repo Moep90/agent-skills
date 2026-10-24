@@ -97,11 +97,11 @@ PLUGINS: dict[str, dict[str, object]] = {
         ],
     },
     "kapitan-recipes": {
-        "version": "0.1.1",
+        "version": "0.2.0",
         "displayName": "Kapitan Recipes",
         "description": (
-            "Migrate a Helm chart or Kustomize base to a Kapitan recipe on kadet-hub "
-            "generators and prove it renders the same objects."
+            "Migrate a Helm chart, Kustomize base or Docker Compose file to a Kapitan recipe "
+            "on kadet-hub generators and prove it renders the same objects or deploys."
         ),
         "author": "Moep90",
         "category": "devops",
@@ -112,6 +112,7 @@ PLUGINS: dict[str, dict[str, object]] = {
             "recipe",
             "helm",
             "kustomize",
+            "docker-compose",
             "migration",
             "kubernetes",
         ],
