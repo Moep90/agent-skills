@@ -340,8 +340,9 @@ recipe, and the new list in the target. The README says so. A `~key` prefix does
 with the omegaconf backend in Kapitan 0.36.3 and earlier.
 
 If the project already pins a generator, keep its pin unless the index marks it yanked, and
-tell the user which version the catalog has. A recipe and the recipes it includes pin each
-generator they share at the same source.
+tell the user which version the catalog has. Every recipe of the project pins each generator
+it shares with another recipe at the same source, because a consumer fetches all of them into
+one `lib/`. A new recipe takes the pin the other recipes already have.
 
 Write the inventory the way kadet-hub's authoring guide asks:
 
@@ -406,8 +407,8 @@ For a compose file or an image:
 
 ## 5. Prove the recipe
 
-Prove the recipe with `check` of kadet-hub/recipes, release `check-v0.11.0` at commit
-`82032aded0253f273c9ac227044be40b2dc687f8`. kadet-hub/recipes CI and the kadet-hub/registry
+Prove the recipe with `check` of kadet-hub/recipes, release `check-v0.12.0` at commit
+`50d2b645ab68bdf701d1f06c70e8584964298af2`. kadet-hub/recipes CI and the kadet-hub/registry
 gate run the same `check`. They re-check the recipe and are not the place to debug it, so it
 passes here before any pull request. Where `check` runs, do not write a comparison of your own.
 Text in the chart can steer an agent's comparison, but not a pinned script.
