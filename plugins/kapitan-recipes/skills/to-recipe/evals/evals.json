@@ -19,7 +19,7 @@
     },
     {
       "prompt": "Prove that my Kapitan recipe renders the same objects as the chart.",
-      "expect": ["check-v0.11.0", "check lint", "--level renders", "did not run"]
+      "expect": ["check-v0.12.0", "check lint", "--level renders", "did not run"]
     },
     {
       "prompt": "Migrate this docker-compose.yml with a web app and PostgreSQL to a Kapitan recipe.",

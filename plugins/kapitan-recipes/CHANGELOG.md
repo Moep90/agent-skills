@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2
+
+`to-recipe` pins `check-v0.12.0`. A new recipe takes the generator pins the other recipes of
+the project already have, because a consumer fetches every generator into one `lib/`, and
+`check lint` now fails on two pins of one generator anywhere in the project (RCP-48).
+
 ## 0.4.1
 
 `to-recipe` pins `check-v0.11.0` and writes the README's first paragraph as the registry
