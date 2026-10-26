@@ -109,7 +109,7 @@ meant.
   and the comparison proves nothing.
 
   - Test: manual: AC-1
-  - Since: #6; release name and render command: this change
+  - Since: #6; release name and render command: #9
 
 - REC-2: Helm hooks and test pods MUST be listed separately and not
   migrated silently.
@@ -206,7 +206,7 @@ recipe of its own and the parent includes it.
   while the index does not mark it yanked.
 
   - Test: manual: AC-1
-  - Since: #6; `output_path`, yanked and included recipes: this change
+  - Since: #6; `output_path`, yanked and included recipes: #9
 
 - REC-8: The skill MUST write the recipe's README with the source pin, the
   include lines, the common chart values with their inventory paths, the
@@ -219,7 +219,7 @@ recipe of its own and the parent includes it.
   each hook it leaves out as `` `<Kind>/<name>` `` (RCP-25).
 
   - Test: manual: AC-1
-  - Since: #6; the lines and sections `check` reads: this change
+  - Since: #6; the lines and sections `check` reads: #9
 
 - REC-12: The recipe directory MUST hold only `README.md`, class files
   `*.yml` at its root, files below `vendor/` and `tests/`. It MUST NOT
@@ -234,7 +234,7 @@ recipe of its own and the parent includes it.
   names is a class outside the root. The license of a class file is RCP-42.
 
   - Test: manual: AC-7
-  - Since: this change
+  - Since: #9
 
 - REC-13: Every file a `copy` entry vendors MUST lie below the recipe's
   `vendor/`, with its SHA-256 in a comment, the upstream license as
@@ -246,7 +246,7 @@ recipe of its own and the parent includes it.
   `check lint` rejects as no file of the recipe.
 
   - Test: manual: AC-7
-  - Since: this change
+  - Since: #9
 
 - REC-14: A file of the recipe MUST NOT exceed 1 MiB. A larger CRD file MUST
   be split into one file per CRD, each with its own SHA-256 comment and
@@ -258,7 +258,7 @@ recipe of its own and the parent includes it.
   bytes.
 
   - Test: manual: AC-7
-  - Since: this change
+  - Since: #9
 
 ## Comparison
 
@@ -274,7 +274,7 @@ recipe of its own and the parent includes it.
   does not claim equality.
 
   - Test: manual: AC-1, AC-3, AC-8
-  - Since: #6; pinned `check`: this change
+  - Since: #6; pinned `check`: #9
 
 - REC-11: A compose recipe MUST be proven at level `deploys`: no
   comparison, the recipe-side checks of RCP-38, a deploy on kind and a
@@ -290,7 +290,7 @@ recipe of its own and the parent includes it.
   `check` treats the same way (RCP-44), are not a source of this skill.
 
   - Test: manual: AC-5
-  - Since: #8; `renders` first: this change
+  - Since: #8; `renders` first: #9
 
 ## Verification
 
