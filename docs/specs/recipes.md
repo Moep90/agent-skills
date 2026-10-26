@@ -60,6 +60,31 @@ it is a heuristic translation itself. The skill therefore maps each
 compose key by the table of RCP-37, stops on its gaps, and proves the
 recipe by deploying it with a smoke test.
 
+DEC-7: The skill proves a recipe with `check` of kadet-hub/recipes at a
+pinned release, the tool that the recipes CI (RCP-13) and the registry gate
+(REC-9 in kadet-hub/registry) run. The skill is responsible for getting the
+recipe right and testing it before a pull request; CI and the gate re-check
+it and are not where it is debugged. RCP-22 asks for the same: a comparison
+the agent writes can be steered by text in the chart, a pinned script
+cannot.
+
+`check` takes only the sources of RCP-23, so the skill keeps its own
+comparison for the rest: a Kustomize base, a chart that no OCI or HTTP
+repository serves, a compose file outside GitHub, and a chart recipe that
+keeps a Helm hook, because `check` leaves out every hook (RCP-25). These
+recipes can only live in a user's project, since kadet-hub/recipes takes
+none of them.
+
+DEC-8: The skill writes a recipe that the kadet-hub/registry gate accepts as
+it is. The gate rules that shape its files are REC-4 (the shipped tree),
+REC-15 (a license per vendored file), SEC-5 of the registry's `gate.md` (no
+file above 1 MiB), REC-6 (generator pins) and REC-7 (the chart render).
+`check lint` covers REC-15, the render and most of REC-6. It does not apply
+SEC-5, and it allows more in a recipe directory than REC-4. REC-4 also
+matches the root `LICENSE` of the source repository against the registry's
+license list. REC-1 there fixes that repository to kadet-hub/recipes, so
+the skill writes nothing for it.
+
 Related: [kadet-hub authoring guide](https://github.com/kadet-hub/registry/blob/main/docs/authors.md),
 [chart-vs-kapitan](https://github.com/kadet-hub/examples/tree/main/chart-vs-kapitan)
 
@@ -75,13 +100,16 @@ meant.
   commit, with the user's values or overlay, and keep that output as the
   reference for the comparison.
 
-  A chart renders with `helm template --include-crds`, a base with
-  `kustomize build`. Without `--include-crds` the CRDs in a chart's
-  `crds/` directory are missing from the reference. Without a pin the
-  reference changes between runs and the comparison proves nothing.
+  A chart renders as `check` and the registry gate render it,
+  `helm template <name> <chart> --namespace=<namespace> -f <values> --include-crds`,
+  with the recipe's name as release name (RCP-23, RCP-34; REC-7 in
+  kadet-hub/registry). A base renders with `kustomize build`. Without
+  `--include-crds` the CRDs in a chart's `crds/` directory are missing
+  from the reference. Without a pin the reference changes between runs
+  and the comparison proves nothing.
 
   - Test: manual: AC-1
-  - Since: not implemented
+  - Since: #6; release name and render command: this change
 
 - REC-2: Helm hooks and test pods MUST be listed separately and not
   migrated silently.
@@ -159,56 +187,118 @@ then checked against the generator's README for the fields it needs.
 
 The skill writes the layout of RCP-1: a class directory
 `inventory/classes/recipes/<name>/` with `init.yml`, one file per
-component, optional classes and a `README.md`, and a target with the
+component, optional classes, a `README.md`, the vendored files below
+`vendor/` and the `tests/` that `check` reads, and a target with the
 user's values. It follows RCP-2 to RCP-7 for scoping, naming, style,
 derived values, image pins and pass-through sections. A subchart becomes a
 recipe of its own and the parent includes it.
 
 - REC-6: Every generator dependency MUST be pinned as
-  `ghcr.io/kadet-hub/<name>:<version>@sha256:<digest>` with the version and
-  digest that `catalog.json` lists together, verified against the attested
-  index before use.
+  `ghcr.io/kadet-hub/<name>:<version>@sha256:<digest>` with
+  `output_path: lib/<name>` and the version and digest that `catalog.json`
+  lists together, verified against the attested index before use and not
+  yanked there. A recipe and the recipes it includes MUST pin each
+  generator they share at the same source.
+
+  The gate checks the pins of the recipe and of each recipe it includes
+  (REC-6 in kadet-hub/registry), and `check lint` fails on two sources for
+  one `output_path` (RCP-48). A pin the project already has passes only
+  while the index does not mark it yanked.
 
   - Test: manual: AC-1
-  - Since: not implemented
+  - Since: #6; `output_path`, yanked and included recipes: this change
 
 - REC-8: The skill MUST write the recipe's README with the source pin, the
   include lines, the common chart values with their inventory paths, the
   hooks left out, the RBAC renames, the proof and the steps for replacing a
   running Helm release, marked as not tested.
 
+  `check lint` reads the source pin as the `Source` line of RCP-23 and the
+  level as the `Level` line, and needs the section "Required parameters"
+  directly after "Include" (RCP-40). `check` fails unless the README names
+  each hook it leaves out as `` `<Kind>/<name>` `` (RCP-25).
+
   - Test: manual: AC-1
-  - Since: not implemented
+  - Since: #6; the lines and sections `check` reads: this change
+
+- REC-12: The recipe directory MUST hold only `README.md`, class files
+  `*.yml` at its root, files below `vendor/` and `tests/`. It MUST NOT
+  contain Python, and YAML below `vendor/` only as the input of a `copy`
+  entry. A class file that carries text the chart renders MUST have the
+  upstream license next to it as `<file>.LICENSE`, and the upstream NOTICE
+  as `<file>.NOTICE` where the source has one.
+
+  The gate ships the directory without `tests/` and fails on anything else
+  (REC-4 in kadet-hub/registry). The omegaconf backend can load a YAML file
+  below `vendor/` as a class `.vendor.<file>`, so one that no `copy` entry
+  names is a class outside the root. The license of a class file is RCP-42.
+
+  - Test: manual: AC-7
+  - Since: this change
+
+- REC-13: Every file a `copy` entry vendors MUST lie below the recipe's
+  `vendor/`, with its SHA-256 in a comment, the upstream license as
+  `vendor/<file>.LICENSE` and the upstream NOTICE as `vendor/<file>.NOTICE`
+  where the source has one.
+
+  This is RCP-17 and RCP-35, and REC-15 in kadet-hub/registry. Up to
+  0.2.0 the skill wrote the CRD file to the project's `vendor/`, which
+  `check lint` rejects as no file of the recipe.
+
+  - Test: manual: AC-7
+  - Since: this change
+
+- REC-14: A file of the recipe MUST NOT exceed 1 MiB. A larger CRD file MUST
+  be split into one file per CRD, each with its own SHA-256 comment and
+  `.LICENSE`.
+
+  SEC-5 of the registry's `gate.md` fails every file above 1 MiB, and
+  `check` does not look at sizes. kadet-hub/recipes#44 split CloudNativePG's
+  CRD file of 1,259,760 bytes this way, and its largest CRD has 678,686
+  bytes.
+
+  - Test: manual: AC-7
+  - Since: this change
 
 ## Comparison
 
-- REC-7: The migration is done only when the comparison of RCP-8 to
-  RCP-11 passes and the remaining differences all fall into the classes of
-  RCP-12. The skill MUST report each remaining difference with its class.
-  Until kadet-hub/recipes publishes `check`, the skill runs the comparison
-  itself, following those requirements. Afterwards it runs a pinned
-  version of `check`.
+- REC-7: The skill MUST prove the recipe with the pinned `check` (DEC-7):
+  `check lint`, then `check --level renders`, then `check --level deploys`
+  where the README's level is `deploys`. The migration is done only when
+  `check` passes at the README's level. The skill MUST report each
+  remaining difference with the class `check` gives it.
 
-  Without kind the skill reports the comparison as not run and does not
-  claim equality.
+  Where `check` cannot take the source (DEC-7), the skill runs the
+  comparison of RCP-8 to RCP-12 itself and reports that `check` did not run
+  and why. Without kind the skill reports the comparison as not run and
+  does not claim equality.
 
-  - Test: manual: AC-1, AC-3
-  - Since: not implemented
+  - Test: manual: AC-1, AC-3, AC-8
+  - Since: #6; pinned `check`: this change
 
-- REC-11: A compose recipe MUST be proven at level `deploys` only: no
+- REC-11: A compose recipe MUST be proven at level `deploys`: no
   comparison, the recipe-side checks of RCP-38, a deploy on kind and a
-  smoke test that checks what the compose file sets up (RCP-39). The
-  skill MUST NOT report it as `renders`.
+  smoke test that checks what the compose file sets up (RCP-39). The skill
+  MUST run `check --level renders` before `--level deploys`, and MUST NOT
+  write `renders` as the README's level.
+
+  Since `check` 0.10.0, `renders` runs for a compose source: `check lint`
+  and the apply of RCP-26 on one kind cluster, with nothing to compare
+  (RCP-38). It finds objects the API server rejects without waiting for a
+  rollout or a smoke test. The level exists for the registry gate (REC-9
+  there), and the README's level stays `deploys`. Designed recipes, which
+  `check` treats the same way (RCP-44), are not a source of this skill.
 
   - Test: manual: AC-5
-  - Since: #8
+  - Since: #8; `renders` first: this change
 
 ## Verification
 
-- AC-1 (REC-1, REC-2, REC-3, REC-4, REC-6, REC-7): running the skill on the
-  metrics-server chart 3.14.0 with the values of
+- AC-1 (REC-1, REC-2, REC-3, REC-4, REC-6, REC-7, REC-8): running the
+  skill on the metrics-server chart 3.14.0 with the values of
   `chart-vs-kapitan/values/metrics-server.yaml` produces a recipe that
-  compiles and whose comparison shows no diff.
+  passes `check lint` and `check --level renders` of the pinned release
+  with no difference outside the classes of RCP-12.
   Check: manual, against the target of `chart-vs-kapitan`
 - AC-2 (REC-5): running the skill on a chart with a kind no generator
   renders, such as a chart with a custom resource of an unlisted operator,
@@ -219,11 +309,20 @@ recipe of its own and the parent includes it.
   Check: manual
 - AC-5 (REC-9, REC-10, REC-11): running the skill on
   `contrib/docker-compose/basic.yml` of Miniflux 2.3.4 produces a recipe
-  that passes `check miniflux --level deploys`.
+  that passes `check miniflux --level renders` and then `--level deploys`.
   Check: manual, against `miniflux/` in kadet-hub/recipes#8
 - AC-6 (REC-10): running the skill on a compose file with a `build:`
   service or a host bind mount stops with a gap report and writes no
   recipe.
+  Check: manual
+- AC-7 (REC-12, REC-13, REC-14): running the skill on the CloudNativePG
+  chart 0.29.1 vendors one file per CRD below the recipe's `vendor/`, each
+  under 1 MiB with its SHA-256 comment and `.LICENSE`, and the recipe
+  directory holds nothing that REC-4 of kadet-hub/registry rejects.
+  Check: manual, against `cnpg/` in kadet-hub/recipes after #44
+- AC-8 (REC-7): running the skill on a Kustomize base proves the recipe
+  with the skill's own comparison and reports that `check` did not run
+  because it takes no Kustomize base.
   Check: manual
 - AC-4: `scripts/validate_skills.py` passes on the skill and its
   `evals/evals.json` (marketplace.md MKT-13).
@@ -244,6 +343,7 @@ None. Publishing (former OQ-1) moved to kadet-hub/recipes.
 
 | Value | Setting |
 |---|---|
-| Plugin | `kapitan-recipes` 0.2.0, category `devops` |
+| Plugin | `kapitan-recipes` 0.3.0, category `devops` |
 | Skill | `to-recipe`, category `workflow` |
 | Generator source | `https://kadet-hub.org/catalog.json` |
+| `check` | kadet-hub/recipes `check-v0.10.0`, commit `a4c9945b340ccfb5a10ae5a4bfac960ef7608408` |
