@@ -1,6 +1,6 @@
 {
   "name": "kapitan-recipes",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Migrate a Helm chart, Kustomize base, Docker Compose file or published image to a Kapitan recipe on kadet-hub generators and prove it renders the same objects or deploys.",
   "author": {
     "name": "Moep90",

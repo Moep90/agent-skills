@@ -19,7 +19,7 @@
     },
     {
       "prompt": "Prove that my Kapitan recipe renders the same objects as the chart.",
-      "expect": ["check-v0.10.0", "check lint", "--level renders", "did not run"]
+      "expect": ["check-v0.11.0", "check lint", "--level renders", "did not run"]
     },
     {
       "prompt": "Migrate this docker-compose.yml with a web app and PostgreSQL to a Kapitan recipe.",
@@ -27,7 +27,7 @@
     },
     {
       "prompt": "Test my cert-manager recipe locally before I open a pull request on kadet-hub/recipes.",
-      "expect": ["a4c9945b340ccfb5a10ae5a4bfac960ef7608408", "check lint", "--level renders", "--level deploys", "tests/smoke"]
+      "expect": ["82032aded0253f273c9ac227044be40b2dc687f8", "check lint", "--level renders", "--level deploys", "tests/smoke"]
     },
     {
       "prompt": "Prove the recipe I built from our own Kustomize base in our Kapitan repository.",
