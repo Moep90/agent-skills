@@ -306,7 +306,7 @@ recipe of its own and the parent includes it.
   (RCP-32), which `check lint` checks since `check-v0.11.0`.
 
   - Test: manual: AC-1
-  - Since: #6; the lines and sections `check` reads: #9; the description: this change
+  - Since: #6; the lines and sections `check` reads: #9; the description: #11
 
 - REC-12: The recipe directory MUST hold only `README.md`, class files
   `*.yml` at its root, files below `vendor/` and `tests/`. It MUST NOT
