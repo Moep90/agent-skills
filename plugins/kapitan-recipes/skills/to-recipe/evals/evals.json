@@ -52,6 +52,18 @@
     {
       "prompt": "Our Helm release is called ms and the recipe metrics-server. Which helm template command gives the reference?",
       "expect": ["release name", "--include-crds", "--namespace=", "recipe's name"]
+    },
+    {
+      "prompt": "This repository only has a Dockerfile, and the project publishes its image on Docker Hub. Build me a Kapitan recipe for it.",
+      "expect": ["oras manifest fetch", "@sha256:", "Settings", "--level deploys", "tests/smoke"]
+    },
+    {
+      "prompt": "Our docker-compose.yml builds the app with build: from its Dockerfile, and upstream publishes no image. Turn it into a Kapitan recipe.",
+      "expect": ["gap", "no recipe", "Build no image", "published image"]
+    },
+    {
+      "prompt": "Make a Kapitan recipe from the Valkey container image. The project also publishes a Helm chart.",
+      "expect": ["chart", "DEC-10", "helm template", "--level renders"]
     }
   ]
 }

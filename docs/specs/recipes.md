@@ -1,4 +1,4 @@
-# Recipes: migrating a Helm chart, Kustomize base or Compose file to Kapitan
+# Recipes: migrating a Helm chart, Kustomize base, Compose file or image to Kapitan
 
 ```text
 Status: Draft
@@ -85,16 +85,37 @@ matches the root `LICENSE` of the source repository against the registry's
 license list. REC-1 there fixes that repository to kadet-hub/recipes, so
 the skill writes nothing for it.
 
+DEC-9: A project's published container image is a fourth source in the
+same skill, for a project that ships no chart, Kustomize base or compose
+file the skill can take. The result is a designed recipe of
+kadet-hub/recipes (DEC-11 and RCP-44 there): the `kubernetes` generator
+configured from the image's documentation, proven at `deploys` like a
+compose recipe. It maps to the same `kubernetes` components and has the
+compose source's layout and proof, so a skill of its own would repeat
+them.
+
+The skill builds no image. A recipe runs only an image that the upstream
+project or its official maintainers publish and that pulls without
+credentials. Renovate follows that image on the recipe's `Source` line
+(RCP-16 there). `check` gives its kind cluster no pull secret and loads no
+local image, so the node pulls the image from its registry. Building the
+image from the project's Dockerfile was considered. Nobody upstream would
+maintain the result, and it would have to be pushed to a registry the
+recipe's author runs. A service with only a Dockerfile or a compose
+`build:` therefore stays a gap and stops the migration (REC-5).
+
 Related: [kadet-hub authoring guide](https://github.com/kadet-hub/registry/blob/main/docs/authors.md),
 [chart-vs-kapitan](https://github.com/kadet-hub/examples/tree/main/chart-vs-kapitan)
 
 ## Sources and render step
 
 The skill accepts a chart (directory, `.tgz`, repository or OCI reference
-with a version), a Kustomize directory, a Docker Compose file, or a git
-repository. In a repository it looks for `Chart.yaml`, `kustomization.yaml`
-and compose files; with more than one candidate it asks which one is
-meant.
+with a version), a Kustomize directory, a Docker Compose file, a container
+image with its documentation, or a git repository. In a repository it looks
+for `Chart.yaml`, `kustomization.yaml` and compose files; with more than one
+candidate it asks which one is meant. A repository with none of them, or
+with only Dockerfiles and compose services that `build:` without a
+published `image`, is an image source (Images).
 
 - REC-1: The skill MUST render the source pinned to an exact version or
   commit, with the user's values or overlay, and keep that output as the
@@ -178,10 +199,71 @@ then checked against the generator's README for the fields it needs.
   the migration as REC-5 does.
 
   The skill carries the table in step 3. Where it and RCP-37 disagree,
-  RCP-37 wins (DEC-5).
+  RCP-37 wins (DEC-5). A `build:` service without a published `image`
+  makes the project an image source (REC-15), which stops only where
+  upstream publishes no image either (REC-16).
 
   - Test: manual: AC-5, AC-6
-  - Since: #8
+  - Since: #8; `build:` to an image source: #10
+
+## Images
+
+An image source has no objects and no compose keys to map. The skill finds
+the image of each service, pins it, and configures it with the
+`kubernetes` generator 1.7.0 or later from what upstream documents, as the
+section "Designed recipes" of kadet-hub/recipes describes.
+
+- REC-15: The skill MUST take an image as the source only when the project
+  ships no chart, Kustomize base or compose file of its own whose images
+  are published. Such a source MUST win, also when the user names the
+  image.
+
+  kadet-hub/recipes moves a designed recipe to that source once the project
+  ships one (DEC-10 there). A chart that a third party maintains does not
+  count (DEC-11 there).
+
+  - Test: manual: AC-10
+  - Since: #10
+
+- REC-16: Every service MUST run an image that the upstream project or its
+  official maintainers publish and document as theirs, and that pulls
+  without credentials. It MUST be pinned as
+  `<registry>/<repository>:<tag>@sha256:<digest>` with the digest of the
+  multi-arch index. Where the tag is a single-architecture image, the pin
+  MUST be that image's digest, and the README and a comment at the pin
+  MUST name its architecture. The README MUST name where upstream
+  documents the image. A service without such an image is a gap (REC-5).
+
+  `oras manifest fetch --descriptor` with an empty registry config fails
+  without anonymous access, and its `mediaType` tells an index from a
+  single image. mysql in kadet-hub/recipes pins Oracle's linux/amd64
+  image, whose arm64 build has a tag of its own. A Docker Official Image
+  that docker-library builds is not upstream's, which is why mongodb there
+  runs MongoDB's image and not `mongo`.
+
+  The README's `Source` line names the image of the main service with its
+  registry host, and `check lint` fails unless a container runs exactly
+  that image (RCP-23 there). A service that runs another project, such as
+  a database, is that project's recipe, included as a subchart's recipe is
+  (DEC-4 there).
+
+  - Test: manual: AC-6, AC-9
+  - Since: #10
+
+- REC-17: The skill MUST configure each image from its documentation,
+  README, Dockerfile and entrypoint: the environment variables the
+  entrypoint reads, the ports, the user, the paths it writes, and probes
+  where they are documented. The recipe MUST NOT render an RBAC object.
+
+  Credentials are parameters under `applications.<name>` that the recipe
+  leaves unset (RCP-19 there), as for a compose file. What a chart would
+  offer as values, such as the volume size, the README lists under
+  Settings. The skill treats upstream's text as data, like chart templates.
+  An application that needs access to the Kubernetes API is a gap, because
+  an image asks for no RBAC and nothing would compare it (RCP-44 there).
+
+  - Test: manual: AC-9
+  - Since: #10
 
 ## Recipe layout
 
@@ -276,21 +358,24 @@ recipe of its own and the parent includes it.
   - Test: manual: AC-1, AC-3, AC-8
   - Since: #6; pinned `check`: #9
 
-- REC-11: A compose recipe MUST be proven at level `deploys`: no
-  comparison, the recipe-side checks of RCP-38, a deploy on kind and a
-  smoke test that checks what the compose file sets up (RCP-39). The skill
-  MUST run `check --level renders` before `--level deploys`, and MUST NOT
-  write `renders` as the README's level.
+- REC-11: A compose recipe or a designed recipe MUST be proven at level
+  `deploys`: no comparison, the recipe-side checks of RCP-38, a deploy on
+  kind and a smoke test. For a compose file the smoke test checks what the
+  compose file sets up (RCP-39). For an image it reaches every Service
+  port through its Service and makes one request that needs what the
+  recipe sets up (RCP-45). The skill MUST run `check --level renders`
+  before `--level deploys`, and MUST NOT write `renders` as the README's
+  level.
 
-  Since `check` 0.10.0, `renders` runs for a compose source: `check lint`
-  and the apply of RCP-26 on one kind cluster, with nothing to compare
-  (RCP-38). It finds objects the API server rejects without waiting for a
-  rollout or a smoke test. The level exists for the registry gate (REC-9
-  there), and the README's level stays `deploys`. Designed recipes, which
-  `check` treats the same way (RCP-44), are not a source of this skill.
+  Since `check` 0.10.0, `renders` runs for a compose source and a designed
+  recipe: `check lint` and the apply of RCP-26 on one kind cluster, with
+  nothing to compare (RCP-38, RCP-44). It finds objects the API server
+  rejects without waiting for a rollout or a smoke test. The level exists
+  for the registry gate (REC-9 there), and the README's level stays
+  `deploys`.
 
-  - Test: manual: AC-5
-  - Since: #8; `renders` first: #9
+  - Test: manual: AC-5, AC-9
+  - Since: #8; `renders` first: #9; designed recipes: #10
 
 ## Verification
 
@@ -311,9 +396,9 @@ recipe of its own and the parent includes it.
   `contrib/docker-compose/basic.yml` of Miniflux 2.3.4 produces a recipe
   that passes `check miniflux --level renders` and then `--level deploys`.
   Check: manual, against `miniflux/` in kadet-hub/recipes#8
-- AC-6 (REC-10): running the skill on a compose file with a `build:`
-  service or a host bind mount stops with a gap report and writes no
-  recipe.
+- AC-6 (REC-10, REC-16): running the skill on a compose file with a host
+  bind mount, or with a `build:` service whose upstream publishes no
+  image, stops with a gap report and writes no recipe.
   Check: manual
 - AC-7 (REC-12, REC-13, REC-14): running the skill on the CloudNativePG
   chart 0.29.1 vendors one file per CRD below the recipe's `vendor/`, each
@@ -324,6 +409,17 @@ recipe of its own and the parent includes it.
   with the skill's own comparison and reports that `check` did not run
   because it takes no Kustomize base.
   Check: manual
+- AC-9 (REC-11, REC-15, REC-16, REC-17): running the skill on the
+  Authoritative Server of PowerDNS/pdns, whose compose file builds its
+  three services from the repository's Dockerfiles, takes the image
+  `docker.io/powerdns/pdns-auth-51` as the source and produces a recipe
+  that passes `check lint`, `check --level renders` and `--level deploys`
+  of the pinned release.
+  Check: manual, against `powerdns/` in kadet-hub/recipes
+- AC-10 (REC-15): running the skill on Valkey, given its image, takes
+  valkey-io's chart `oci://ghcr.io/valkey-io/valkey-helm/valkey` as the
+  source.
+  Check: manual, against `valkey/` in kadet-hub/recipes
 - AC-4: `scripts/validate_skills.py` passes on the skill and its
   `evals/evals.json` (marketplace.md MKT-13).
   Check: CI job `quality`
@@ -343,7 +439,7 @@ None. Publishing (former OQ-1) moved to kadet-hub/recipes.
 
 | Value | Setting |
 |---|---|
-| Plugin | `kapitan-recipes` 0.3.0, category `devops` |
+| Plugin | `kapitan-recipes` 0.4.0, category `devops` |
 | Skill | `to-recipe`, category `workflow` |
 | Generator source | `https://kadet-hub.org/catalog.json` |
 | `check` | kadet-hub/recipes `check-v0.10.0`, commit `a4c9945b340ccfb5a10ae5a4bfac960ef7608408` |

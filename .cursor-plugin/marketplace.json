@@ -25,7 +25,7 @@
     {
       "name": "kapitan-recipes",
       "source": "./plugins/kapitan-recipes",
-      "description": "Migrate a Helm chart, Kustomize base or Docker Compose file to a Kapitan recipe on kadet-hub generators and prove it renders the same objects or deploys."
+      "description": "Migrate a Helm chart, Kustomize base, Docker Compose file or published image to a Kapitan recipe on kadet-hub generators and prove it renders the same objects or deploys."
     }
   ]
 }
