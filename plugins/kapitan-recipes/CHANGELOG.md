@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+`to-recipe` proves a recipe with `check` of kadet-hub/recipes, pinned to `check-v0.10.0`, the tool
+that the recipes CI and the registry gate run: `check lint`, then `--level renders`, then
+`--level deploys`. A compose recipe runs `renders` first as the fast check and stays at `deploys`.
+The skill's own comparison remains for sources `check` cannot take, such as a Kustomize base.
+Vendored files move below the recipe's `vendor/` with a `.LICENSE` each, files above 1 MiB are
+split, and the recipe directory, generator pins, README lines and `tests/` follow what `check`
+and the registry gate read.
+
 ## 0.2.0
 
 `to-recipe` takes a Docker Compose file as a source. It maps each compose key to the

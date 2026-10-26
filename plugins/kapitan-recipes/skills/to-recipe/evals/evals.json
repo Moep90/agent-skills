@@ -3,7 +3,7 @@
   "cases": [
     {
       "prompt": "Replace the metrics-server Helm chart 3.14.0 with Kapitan inventory, using our values.yaml.",
-      "expect": ["helm template", "catalog.json", "inventory/classes/recipes/", "--dry-run=server"]
+      "expect": ["helm template", "catalog.json", "inventory/classes/recipes/", "--level renders"]
     },
     {
       "prompt": "Convert this kustomization to a Kapitan recipe on kadet-hub generators.",
@@ -19,11 +19,39 @@
     },
     {
       "prompt": "Prove that my Kapitan recipe renders the same objects as the chart.",
-      "expect": ["--dry-run=server", "normalize", "auth can-i --list", "did not run"]
+      "expect": ["check-v0.10.0", "check lint", "--level renders", "did not run"]
     },
     {
       "prompt": "Migrate this docker-compose.yml with a web app and PostgreSQL to a Kapitan recipe.",
       "expect": ["docker compose config", "SHA-256", "deploys", "smoke", "gap"]
+    },
+    {
+      "prompt": "Test my cert-manager recipe locally before I open a pull request on kadet-hub/recipes.",
+      "expect": ["a4c9945b340ccfb5a10ae5a4bfac960ef7608408", "check lint", "--level renders", "--level deploys", "tests/smoke"]
+    },
+    {
+      "prompt": "Prove the recipe I built from our own Kustomize base in our Kapitan repository.",
+      "expect": ["did not run", "--dry-run=server", "auth can-i --list"]
+    },
+    {
+      "prompt": "Run the local proof of my compose recipe for miniflux.",
+      "expect": ["--level renders", "--level deploys", "deploys", "tests/smoke"]
+    },
+    {
+      "prompt": "The CloudNativePG CRD file my recipe vendors is 1.2 MB. Will the kadet-hub registry gate take it?",
+      "expect": ["1 MiB", "one file per CRD", ".LICENSE", "SHA-256"]
+    },
+    {
+      "prompt": "Which files may my recipe directory contain so the kadet-hub registry gate accepts it?",
+      "expect": ["README.md", "*.yml", "vendor/", ".LICENSE", "Python"]
+    },
+    {
+      "prompt": "How do I pin the kubernetes generator in my recipe so the registry gate accepts it?",
+      "expect": ["ghcr.io/kadet-hub/", "@sha256:", "lib/", "yanked"]
+    },
+    {
+      "prompt": "Our Helm release is called ms and the recipe metrics-server. Which helm template command gives the reference?",
+      "expect": ["release name", "--include-crds", "--namespace=", "recipe's name"]
     }
   ]
 }
