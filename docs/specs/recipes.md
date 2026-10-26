@@ -204,7 +204,7 @@ then checked against the generator's README for the fields it needs.
   upstream publishes no image either (REC-16).
 
   - Test: manual: AC-5, AC-6
-  - Since: #8; `build:` to an image source: this change
+  - Since: #8; `build:` to an image source: #10
 
 ## Images
 
@@ -223,7 +223,7 @@ section "Designed recipes" of kadet-hub/recipes describes.
   count (DEC-11 there).
 
   - Test: manual: AC-10
-  - Since: this change
+  - Since: #10
 
 - REC-16: Every service MUST run an image that the upstream project or its
   official maintainers publish and document as theirs, and that pulls
@@ -248,7 +248,7 @@ section "Designed recipes" of kadet-hub/recipes describes.
   (DEC-4 there).
 
   - Test: manual: AC-6, AC-9
-  - Since: this change
+  - Since: #10
 
 - REC-17: The skill MUST configure each image from its documentation,
   README, Dockerfile and entrypoint: the environment variables the
@@ -263,7 +263,7 @@ section "Designed recipes" of kadet-hub/recipes describes.
   an image asks for no RBAC and nothing would compare it (RCP-44 there).
 
   - Test: manual: AC-9
-  - Since: this change
+  - Since: #10
 
 ## Recipe layout
 
@@ -375,7 +375,7 @@ recipe of its own and the parent includes it.
   `deploys`.
 
   - Test: manual: AC-5, AC-9
-  - Since: #8; `renders` first: #9; designed recipes: this change
+  - Since: #8; `renders` first: #9; designed recipes: #10
 
 ## Verification
 
