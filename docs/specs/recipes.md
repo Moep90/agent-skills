@@ -292,7 +292,7 @@ recipe of its own and the parent includes it.
 
   - Test: manual: AC-1
   - Since: #6; `output_path`, yanked and included recipes: #9; every recipe
-    of the project: this change
+    of the project: #12
 
 - REC-8: The skill MUST write the recipe's README with the source pin, the
   include lines, the common chart values with their inventory paths, the
