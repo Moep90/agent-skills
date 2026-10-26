@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0
+
+`to-recipe` takes a project's published container image as a fourth source, for a project that
+ships no chart, Kustomize base or usable compose file, such as one with only Dockerfiles or
+compose services that `build:`. The result is a designed recipe of kadet-hub/recipes: each
+service runs an image the project or its official maintainers publish, pulled without
+credentials and pinned by the digest of its multi-arch index, configured with the `kubernetes`
+generator from the image's documentation, Dockerfile and entrypoint, and proven at `deploys`
+like a compose recipe. The skill builds no image, so a service without such an image is a gap.
+The project's own chart, base or compose file wins over its image.
+
 ## 0.3.0
 
 `to-recipe` proves a recipe with `check` of kadet-hub/recipes, pinned to `check-v0.10.0`, the tool

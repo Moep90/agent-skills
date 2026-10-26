@@ -1,7 +1,7 @@
 {
   "name": "kapitan-recipes",
-  "version": "0.3.0",
-  "description": "Migrate a Helm chart, Kustomize base or Docker Compose file to a Kapitan recipe on kadet-hub generators and prove it renders the same objects or deploys.",
+  "version": "0.4.0",
+  "description": "Migrate a Helm chart, Kustomize base, Docker Compose file or published image to a Kapitan recipe on kadet-hub generators and prove it renders the same objects or deploys.",
   "author": {
     "name": "Moep90",
     "url": "https://github.com/Moep90/agent-skills"
@@ -23,7 +23,7 @@
   "interface": {
     "displayName": "Kapitan Recipes",
     "shortDescription": "Agent plugin with skills",
-    "longDescription": "Migrate a Helm chart, Kustomize base or Docker Compose file to a Kapitan recipe on kadet-hub generators and prove it renders the same objects or deploys.",
+    "longDescription": "Migrate a Helm chart, Kustomize base, Docker Compose file or published image to a Kapitan recipe on kadet-hub generators and prove it renders the same objects or deploys.",
     "developerName": "Moep90",
     "category": "DevOps",
     "capabilities": [
