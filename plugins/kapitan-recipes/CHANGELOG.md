@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1
+
+`to-recipe` pins `check-v0.11.0` and writes the README's first paragraph as the registry
+description: at most 300 characters, without a closing colon (RCP-32), which `check lint` now
+checks.
+
 ## 0.4.0
 
 `to-recipe` takes a project's published container image as a fourth source, for a project that

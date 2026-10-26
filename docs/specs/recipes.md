@@ -300,8 +300,13 @@ recipe of its own and the parent includes it.
   directly after "Include" (RCP-40). `check` fails unless the README names
   each hook it leaves out as `` `<Kind>/<name>` `` (RCP-25).
 
+  The README's first paragraph after the heading is the recipe's
+  description in the registry index. It MUST have at most 300 characters,
+  no control or bidirectional formatting character and no closing colon
+  (RCP-32), which `check lint` checks since `check-v0.11.0`.
+
   - Test: manual: AC-1
-  - Since: #6; the lines and sections `check` reads: #9
+  - Since: #6; the lines and sections `check` reads: #9; the description: #11
 
 - REC-12: The recipe directory MUST hold only `README.md`, class files
   `*.yml` at its root, files below `vendor/` and `tests/`. It MUST NOT
@@ -439,7 +444,7 @@ None. Publishing (former OQ-1) moved to kadet-hub/recipes.
 
 | Value | Setting |
 |---|---|
-| Plugin | `kapitan-recipes` 0.4.0, category `devops` |
+| Plugin | `kapitan-recipes` 0.4.1, category `devops` |
 | Skill | `to-recipe`, category `workflow` |
 | Generator source | `https://kadet-hub.org/catalog.json` |
-| `check` | kadet-hub/recipes `check-v0.10.0`, commit `a4c9945b340ccfb5a10ae5a4bfac960ef7608408` |
+| `check` | kadet-hub/recipes `check-v0.11.0`, commit `82032aded0253f273c9ac227044be40b2dc687f8` |

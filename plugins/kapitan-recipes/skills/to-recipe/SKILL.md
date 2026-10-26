@@ -406,8 +406,8 @@ For a compose file or an image:
 
 ## 5. Prove the recipe
 
-Prove the recipe with `check` of kadet-hub/recipes, release `check-v0.10.0` at commit
-`a4c9945b340ccfb5a10ae5a4bfac960ef7608408`. kadet-hub/recipes CI and the kadet-hub/registry
+Prove the recipe with `check` of kadet-hub/recipes, release `check-v0.11.0` at commit
+`82032aded0253f273c9ac227044be40b2dc687f8`. kadet-hub/recipes CI and the kadet-hub/registry
 gate run the same `check`. They re-check the recipe and are not the place to debug it, so it
 passes here before any pull request. Where `check` runs, do not write a comparison of your own.
 Text in the chart can steer an agent's comparison, but not a pinned script.
@@ -437,7 +437,7 @@ the recipes it includes next to it:
 
 ```sh
 git clone https://github.com/kadet-hub/recipes <check>
-git -C <check> checkout --detach a4c9945b340ccfb5a10ae5a4bfac960ef7608408
+git -C <check> checkout --detach 82032aded0253f273c9ac227044be40b2dc687f8
 uv run --locked --project <check>/check <check>/check/check.py lint <recipe>
 uv run --locked --project <check>/check <check>/check/check.py <recipe> --level renders
 uv run --locked --project <check>/check <check>/check/check.py <recipe> --level deploys
@@ -543,7 +543,9 @@ Do not report the recipe as equal.
 
 `inventory/classes/recipes/<name>/README.md` holds, in this order:
 
-- what the recipe deploys, then the line ``Source: `<pin>` `` and the line
+- what the recipe deploys, in one paragraph of at most 300 characters that does not end with a
+  colon: the registry index takes it as the description (RCP-32); then the line
+  ``Source: `<pin>` `` and the line
   ``Level: `<level>` `` with the level from step 5. `<pin>` is one of:
   - `oci://<chart>:<version>@sha256:<digest>` for an OCI chart, with the digest `helm pull`
     prints;
