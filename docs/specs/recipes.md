@@ -279,16 +279,20 @@ recipe of its own and the parent includes it.
   `ghcr.io/kadet-hub/<name>:<version>@sha256:<digest>` with
   `output_path: lib/<name>` and the version and digest that `catalog.json`
   lists together, verified against the attested index before use and not
-  yanked there. A recipe and the recipes it includes MUST pin each
-  generator they share at the same source.
+  yanked there. A recipe MUST pin each generator it shares with another
+  recipe of the project at the same source.
 
-  The gate checks the pins of the recipe and of each recipe it includes
-  (REC-6 in kadet-hub/registry), and `check lint` fails on two sources for
-  one `output_path` (RCP-48). A pin the project already has passes only
-  while the index does not mark it yanked.
+  A consumer project fetches every generator into one `lib/` for all of
+  its targets, so two recipes with different pins of one generator cannot
+  be used together. The gate checks the pins of the recipe and of each
+  recipe it includes (REC-6 in kadet-hub/registry), and `check lint` fails
+  on two sources for one `output_path` among all recipes of the project
+  since `check-v0.12.0` (RCP-48). A pin the project already has passes
+  only while the index does not mark it yanked.
 
   - Test: manual: AC-1
-  - Since: #6; `output_path`, yanked and included recipes: #9
+  - Since: #6; `output_path`, yanked and included recipes: #9; every recipe
+    of the project: this change
 
 - REC-8: The skill MUST write the recipe's README with the source pin, the
   include lines, the common chart values with their inventory paths, the
@@ -444,7 +448,7 @@ None. Publishing (former OQ-1) moved to kadet-hub/recipes.
 
 | Value | Setting |
 |---|---|
-| Plugin | `kapitan-recipes` 0.4.1, category `devops` |
+| Plugin | `kapitan-recipes` 0.4.2, category `devops` |
 | Skill | `to-recipe`, category `workflow` |
 | Generator source | `https://kadet-hub.org/catalog.json` |
-| `check` | kadet-hub/recipes `check-v0.11.0`, commit `82032aded0253f273c9ac227044be40b2dc687f8` |
+| `check` | kadet-hub/recipes `check-v0.12.0`, commit `50d2b645ab68bdf701d1f06c70e8584964298af2` |
