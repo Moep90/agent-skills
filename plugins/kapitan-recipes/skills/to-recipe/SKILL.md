@@ -38,11 +38,13 @@ them. Migrate only the objects in the rendered output, and add nothing that is n
 ## 1. Pin and render the source
 
 Ask for what is missing before you start: the source, its exact version or commit, the
-values file or overlay the user deploys with, the release name and the namespace.
+values file or overlay the user deploys with, the release name and the namespace. The release
+name is also the recipe's name, `<name>` below, because `check` (step 5) and the registry gate
+render a chart with the recipe's name as release name.
 
 | Source | Render |
 |---|---|
-| Chart in a repository | `helm pull <repo>/<chart> --version <v>`, then `helm template <release> <chart.tgz> -n <ns> -f <values> --include-crds` |
+| Chart in a repository | `helm pull <repo>/<chart> --version <v>` and record the archive's SHA-256, then `helm template <name> <chart.tgz> --namespace=<ns> -f <values> --include-crds` |
 | OCI chart | `helm pull oci://<ref> --version <v>`, then the same `helm template`. Record the digest `helm pull` prints. |
 | Kustomize directory | `kustomize build <dir>`, or `kubectl kustomize <dir>` |
 | Git repository | Check out the commit. A `Chart.yaml` means a chart, a `kustomization.yaml` means a base, a `compose.yaml` or `docker-compose.yml` a compose file. If there are several, ask which one. |
@@ -69,8 +71,9 @@ annotation, so every document keeps the bytes Helm wrote:
 
 Hooks are objects with the annotation `helm.sh/hook`. They run inside `helm install` only.
 Group them by the feature they belong to, such as a Job with its ServiceAccount and Role, and
-ask the user once per group whether it is needed outside Helm. A source without a pin gives
-an output that changes between runs, so do not continue without one.
+ask the user once per group whether it is needed outside Helm. `check` leaves out every hook,
+so a recipe that keeps one is proven without it (step 5). A source without a pin gives an
+output that changes between runs, so do not continue without one.
 
 ## 2. Map every object to a generator
 
@@ -98,10 +101,10 @@ use the standalone `services` entry. Take section names and keys from the README
 
 Pull each generator you map to now into `lib/<generator>` of the Kapitan project that step 4
 sets up, verified as kadet-hub's `docs/consumers.md` describes:
-check the attestation, and check that the attested index lists the digest. `catalog.json` is
-not signed. When the README does not settle whether a field is expressible, read the
-generator's source in the pulled artifact or compile a small probe target. The diff in step 5
-is the final check.
+check the attestation, and check that the attested index lists the digest and does not mark it
+yanked. `catalog.json` is not signed. When the README does not settle whether a field is
+expressible, read the generator's source in the pulled artifact or compile a small probe
+target. The diff in step 5 is the final check.
 
 A section that copies a whole object through unchanged, such as the `kubernetes`
 generator's `manifests`, is not a mapping. An object that only fits there is a gap.
@@ -181,8 +184,9 @@ inventory/classes/recipes/<name>/
   <component>.yml                           # one per component, with its RBAC
   <option>.yml                              # optional parts, such as crds.yml
   README.md
+  vendor/                                   # vendored files, such as the release's CRD file
+  tests/                                    # read by check (step 5)
 inventory/targets/<name>.yml                # the user's values
-vendor/<project>.crds.yaml                  # CRD file from the release, if any
 ```
 
 ```yaml
@@ -234,9 +238,20 @@ parameters:
     compile:
       - input_type: copy
         input_paths:
-          - vendor/<project>.crds.yaml   # SHA-256 <sum>, from <release URL>
+          # SHA-256 <sum>, from <release URL>
+          - inventory/classes/recipes/<name>/vendor/<project>.crds.yaml
         output_path: manifests/
 ```
+
+The registry ships the recipe directory without `tests/` and rejects anything but `README.md`,
+class files `*.yml` at the root with their licenses, and files below `vendor/`. A class file that carries text the
+chart renders, such as a script in a ConfigMap, has the upstream license next to it as
+`<file>.LICENSE`. Every file a `copy` entry names lies below `vendor/`, with the upstream
+license as `<file>.LICENSE` and, where the upstream source has one, its NOTICE as
+`<file>.NOTICE`. No file may exceed 1 MiB. Split a larger CRD file at its `---`
+lines into one file per CRD, named after the CRD, each with its own SHA-256 comment and
+`.LICENSE`, and name the upstream file with its SHA-256 in a comment above them. No Python
+anywhere, and no YAML below `vendor/` that no `copy` entry names.
 
 The target includes the recipe and its options, and holds the user's values, the namespace
 among them. The kadet generators read `kapitan.vars.target`. Without it, the compile stops
@@ -277,8 +292,9 @@ To replace a whole list, a user sets the key to `~` (null) in a class included a
 recipe, and the new list in the target. The README says so. A `~key` prefix does nothing
 with the omegaconf backend in Kapitan 0.36.3 and earlier.
 
-If the project already pins a generator, keep its pin and tell the user which version the
-catalog has.
+If the project already pins a generator, keep its pin unless the index marks it yanked, and
+tell the user which version the catalog has. A recipe and the recipes it includes pin each
+generator they share at the same source.
 
 Write the inventory the way kadet-hub's authoring guide asks:
 
@@ -322,8 +338,9 @@ Compile the target. A compile error means the inventory does not match the gener
 README. Fix the inventory, not the generator. Warnings about missing resource requests or
 probes are expected when the source sets none.
 
-In kadet-hub/recipes, a recipe also has `tests/values.yaml` and `tests/smoke`. In a user's
-project it does not.
+`check` reads `tests/`, in kadet-hub/recipes and in a user's project alike:
+`tests/target.yml` is a copy of the target, `tests/values.yaml` the values file of step 1 for a
+chart, and step 5 says what `tests/smoke` checks.
 
 For a compose file:
 
@@ -337,19 +354,75 @@ For a compose file:
   variables, and Kubernetes would.
 - The generator turns every `secrets` entry into a pod volume named after its key, mounted or
   not. Give it a key, such as `credentials`, that no volume claim or volume uses.
-- In kadet-hub/recipes there is no `tests/values.yaml`, and `tests/target.yml` sets the
-  credentials to the compose file's values.
+- There is no `tests/values.yaml`, and `tests/target.yml` sets the credentials to the compose
+  file's values.
 
-## 5. Prove the same objects
+## 5. Prove the recipe
 
-For a compose file, skip 5.1 to 5.6 and run only these checks on the compiled recipe, then
-5.7 on one fresh kind cluster. The level is `deploys`, never `renders`:
+Prove the recipe with `check` of kadet-hub/recipes, release `check-v0.10.0` at commit
+`a4c9945b340ccfb5a10ae5a4bfac960ef7608408`. kadet-hub/recipes CI and the kadet-hub/registry
+gate run the same `check`. They re-check the recipe and are not the place to debug it, so it
+passes here before any pull request. Where `check` runs, do not write a comparison of your own.
+Text in the chart can steer an agent's comparison, but not a pinned script.
 
-- it renders no Role, ClusterRole or binding, because a compose file grants no API access;
-- each workload's selector selects its own pods, and each Service selects pods;
-- the smoke test checks what the compose file sets up: every published port answers through
-  its Service, every service with a `healthcheck` is ready, and one functional request needs
-  the services together, such as a write through the application that its database stores.
+`check` reads the recipe directory: the README's `Source` and `Level` lines and sections
+(step 6) and `tests/`. It fetches the source by its `Source` line and verifies the digest,
+verifies and pulls the generators, compiles `tests/target.yml` with Kapitan 0.36.3, renders a
+chart with `tests/values.yaml`, and proves on fresh kind clusters that it creates and deletes.
+It needs helm, kubectl, kind, docker and oras on `PATH`, and gh logged in for
+`gh attestation verify`.
+
+`tests/smoke` is an executable script that exits 0 when the application works. For a chart it
+exercises the application, such as issuing a Certificate for cert-manager. For a compose file
+it checks what the compose file sets up: every published port answers through its Service,
+every service with a `healthcheck` is ready, and one functional request needs the services
+together, such as a write through the application that its database stores.
+
+`check lint` reads the README's level, so set it first. It is `deploys` with a `tests/smoke`,
+and always for a compose recipe, although `--level renders` passes for one too. A chart recipe
+without a practical smoke test is at `renders`. Say so.
+
+Clone `check` outside the project and run it on `<recipe>`, which is
+`inventory/classes/recipes/<name>` in a user's project and `<name>` in kadet-hub/recipes, with
+the recipes it includes next to it:
+
+```sh
+git clone https://github.com/kadet-hub/recipes <check>
+git -C <check> checkout --detach a4c9945b340ccfb5a10ae5a4bfac960ef7608408
+uv run --locked --project <check>/check <check>/check/check.py lint <recipe>
+uv run --locked --project <check>/check <check>/check/check.py <recipe> --level renders
+uv run --locked --project <check>/check <check>/check/check.py <recipe> --level deploys
+```
+
+Run them in this order, `--level deploys` for a recipe at `deploys`, and fix the recipe after
+each failure. Exit status 1 means a check failed, with the reasons in the lines `check` prints.
+2 means a command it runs failed, such as a compile, a digest that does not match or an apply
+the API server rejects, with the error on stderr.
+
+- `lint` applies the file rules of kadet-hub/recipes, compiles the target, and checks object
+  names and image pins. A `lint: warning:` line does not fail.
+- `--level renders` proves a chart recipe against the chart, each side on its own cluster: the
+  objects after a server-side dry run, the selectors, and the permissions of every subject. It
+  prints each remaining difference with its class, or `NOT ACCEPTED` outside the classes, and
+  fails on such a difference, on an object only on one side, and on a selection or permission
+  that differs. Each is a defect of the recipe. Fix the recipe. For a compose file it applies
+  the recipe on one cluster with a server-side dry run and compares nothing, the fast check
+  before `deploys`.
+- `--level deploys` applies the recipe for real, waits for every rollout, and runs
+  `tests/smoke` with `KUBECONFIG` set to that cluster.
+
+### Without check
+
+`check` takes the sources of the `Source` lines in step 6: an OCI chart, a chart in an HTTP
+repository and a compose file on GitHub. It cannot prove a Kustomize base, a chart that no OCI
+or HTTP repository serves, a compose file outside GitHub, or a chart recipe that keeps a hook.
+kadet-hub/recipes takes none of these, so such a recipe stays in the user's project. Prove it
+with the steps below, and report that `check` did not run and why.
+
+For a compose file, skip 5.1 to 5.6. Check on the compiled recipe that it renders no Role,
+ClusterRole or binding, because a compose file grants no API access, that each workload's
+selector selects its own pods, and that each Service selects pods. Then run 5.7 on one fresh
+kind cluster.
 
 Equality is checked on what the API server stores, so defaults the API server fills in do
 not show up as differences. A dry run merges with objects that already exist, which can hide
@@ -364,7 +437,7 @@ On each cluster:
    `kubectl config set-context --current --namespace <namespace>`. Helm leaves
    `metadata.namespace` out of many templates. Do not pass `-n` to `apply`: it rejects
    objects that set another namespace, such as leader-election Roles in `kube-system`.
-2. Apply the CRDs for real. Diff `crds.yaml` against the recipe's CRD file. Only comment
+2. Apply the CRDs for real. Diff `crds.yaml` against the recipe's CRD files. Only comment
    lines, document separators and the labels that 5.3 drops may differ.
 3. Run `kubectl apply --dry-run=server -o yaml -f` on `render.yaml`, and the same on the
    compiled output without the CRDs. The output is one `kind: List`. Unwrap its `items`.
@@ -408,34 +481,38 @@ On each cluster:
    `aggregate-to-cluster-reader` targets an OpenShift role that kind does not have. List such
    labels in the report as not tested. Sort the verbs within each line, then diff the two
    sides.
-7. Check that the application works. Wait until every workload has rolled out. Name a check
-   that exercises the application, such as issuing a Certificate for cert-manager, run it on
-   the recipe's cluster, and record it in the README. Retry an apply that a webhook rejects
-   while it starts, for up to a minute. If no check is practical, say so.
+7. Check that the application works. Apply the recipe for real on the recipe's cluster,
+   retrying an apply that a webhook rejects while it starts for up to a minute, wait until
+   every workload has rolled out, and run `tests/smoke`.
 
-If kind is not available, say that the comparison did not run. Do not report the recipe as
-equal.
-
-kadet-hub/recipes will publish a `check` script that runs this comparison. Once a version of
-it is published, run that pinned version instead of steps 5.1 to 5.6.
+If kind is not available, neither `check` nor these steps run. Say that the proof did not run.
+Do not report the recipe as equal.
 
 ## 6. Write the README
 
 `inventory/classes/recipes/<name>/README.md` holds, in this order:
 
-- what the recipe deploys, and the source it was derived from with version and digest. For a
-  compose file that is the line
-  ``Source: `https://github.com/<owner>/<repo>/blob/<commit>/<path>@sha256:<digest>` ``;
-- how to include it: the `classes:` lines and the options;
+- what the recipe deploys, then the line ``Source: `<pin>` `` and the line
+  ``Level: `<level>` `` with the level from step 5. `<pin>` is one of:
+  - `oci://<chart>:<version>@sha256:<digest>` for an OCI chart, with the digest `helm pull`
+    prints;
+  - `https://<repository>/<chart>:<version>@sha256:<digest>` for a chart in an HTTP
+    repository, with the URL `helm repo add` takes and the archive's SHA-256;
+  - `https://github.com/<owner>/<repo>/blob/<commit>/<path>@sha256:<digest>` for a compose
+    file.
+
+  For a source `check` does not take, name it with its version or commit and digest;
+- a section `## Include` with the `classes:` lines and the options, directly followed by
+  `## Required parameters`, which names every parameter the target must set, such as refs for
+  generated passwords, or says "No parameter has to be set.";
 - about ten chart values users commonly change, each with its inventory path, such as
   `replicaCount` to `components.<name>.replicas`, and the note that lists set in the target
   are appended;
-- the parameters the user must set, such as refs for generated passwords;
-- the hooks and test pods left out, and why;
+- the hooks and test pods left out, and why, each as `` `<Kind>/<name>` ``;
 - the RBAC objects renamed, old and new name;
-- the proof: kind node image, the result of step 5 with its remaining differences, and the
-  check from step 5.7. The level is `renders` after steps 5.1 to 5.6 and `deploys` after
-  5.7;
+- the proof: the `check` version and the kind node image it pins (`KIND_NODE_IMAGE` in
+  `check/check.py`), or the steps without check and their node image, the remaining
+  differences with their classes, and what `tests/smoke` checks;
 - for a compose file, the mapping: each service with its component, the renamed DNS names,
   the images pinned from `latest`, and the keys not rendered;
 - for a chart, replacing a running Helm release, as steps marked not tested:
@@ -452,8 +529,9 @@ End with:
 
 - the pinned source, its digest, and the values or overlay used;
 - the mapping table from step 2;
-- the comparison result: the remaining differences with their classes, equal selections,
-  equal permissions, or not run. For a compose file, the smoke test and its result;
+- the proof: the `check` version and each level that passed, or why `check` did not run and the
+  results of the steps without check, or not run. Then the remaining differences with their
+  classes and, for level `deploys`, what `tests/smoke` checks;
 - the identifying labels that differ, since something outside the recipe may select on them;
 - the lines the user maintains, without blank and comment lines: the recipe's files and the
   target, against the chart's files under `templates/` other than CRDs, `NOTES.txt` and
