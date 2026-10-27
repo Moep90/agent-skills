@@ -1,0 +1,45 @@
+{
+  "skill": "kapitan-ocm-generator",
+  "cases": [
+    {
+      "prompt": "Generate an OCM component-constructor.yaml for each Kapitan target with all container images.",
+      "expect": [
+        "ocm",
+        "images.scan",
+        "output_path: .",
+        "output_type: plain"
+      ]
+    },
+    {
+      "prompt": "My constructor has version: ${VERSION} but kapitan compile fails to resolve VERSION.",
+      "expect": [
+        "\\${VERSION}",
+        "${escape:VERSION}",
+        "backend"
+      ]
+    },
+    {
+      "prompt": "The OCM constructor misses the images of my Helm chart.",
+      "expect": [
+        "after",
+        "order",
+        "last"
+      ]
+    },
+    {
+      "prompt": "Two images are both named redis and the ocm compile fails.",
+      "expect": [
+        "images.names",
+        "repository"
+      ]
+    },
+    {
+      "prompt": "How do I point the OCM image access at a pull-through cache per registry with OmegaConf?",
+      "expect": [
+        "%registry_id%",
+        "%path%",
+        "${escape:"
+      ]
+    }
+  ]
+}
