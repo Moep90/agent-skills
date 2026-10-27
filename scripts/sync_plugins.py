@@ -76,10 +76,11 @@ PLUGINS: dict[str, dict[str, object]] = {
         ],
     },
     "kapitan-generators": {
-        "version": "0.1.0",
+        "version": "0.2.0",
         "displayName": "Kapitan Generators",
         "description": (
-            "Skills for the kapicorp Kubernetes and Terraform generators, kadet authoring, "
+            "Skills for the kapicorp Kubernetes and Terraform generators, the kadet-hub OCM "
+            "generator, kadet authoring, "
             "and project scaffolding."
         ),
         "author": "kapicorp",
