@@ -36,7 +36,8 @@ file. A gate in a second ecosystem, reading `deny.toml`:
         allow = set(tomllib.load(f)["licenses"]["allow"])
     with open("editors/vscode/package-lock.json") as f:
         packages = json.load(f)["packages"]
-    lic = r"[A-Za-z0-9][A-Za-z0-9.+-]*(?: WITH [A-Za-z0-9][A-Za-z0-9.+-]*)?"
+    word = r"(?!(?:OR|AND|WITH)\b)[A-Za-z0-9][A-Za-z0-9.+-]*"
+    lic = rf"{word}(?: WITH {word})?"
     alts = rf"{lic}(?: OR {lic})*"
     def ok(expr):
         # shortcut: IDs joined by OR, in at most one pair of parentheses; AND,
@@ -51,10 +52,11 @@ file. A gate in a second ecosystem, reading `deny.toml`:
     sys.exit(1 if bad else 0)
 ```
 
-The allow list holds SPDX identifiers, as cargo-deny requires, and an `OR` expression
-passes when one of its identifiers is allowed, which is how cargo-deny judges it too. Test
+The allow list holds SPDX identifiers, as cargo-deny requires. An `OR` expression passes
+when one alternative is allowed, as in cargo-deny. Every `AND` fails closed here, which is
+stricter than cargo-deny and never admits a licence the list does not allow. Test
 it both ways: green on the repository, red after setting one shipped package to `GPL-3.0`,
-to `MIT AND GPL-3.0` and to a malformed `(MIT` in a copy of the lockfile.
+to `MIT AND GPL-3.0`, to a malformed `(MIT` and to `MIT OR OR` in a copy of the lockfile.
 
 Excluding dev dependencies is right only when nothing bundles them. An extension or web
 app built with esbuild, webpack or similar ships whatever the bundle imports, dev
