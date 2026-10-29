@@ -55,14 +55,14 @@ target repository, including subdirectories, container images, vendored
 code and CI actions, and say for each whether it ships to users.
 
   - Test: evals case "inventory"
-  - Since: this change
+  - Since: #14
 
 SUP-2: Every number the agent reports MUST state its unit (unique package,
 lockfile entry, advisory ID, crate entry) and come from a deduplicated
 count.
 
   - Test: evals case "inventory"
-  - Since: this change
+  - Since: #14
 
 ## Licences
 
@@ -76,14 +76,14 @@ against the single allow list, failing closed on unknown or compound
 licence strings.
 
   - Test: evals case "licence gate"
-  - Since: this change
+  - Since: #14
 
 SUP-4: The skill MUST make the agent check that every distributed artefact
 (archive, wheel, image, extension package) carries the third-party licence
 notices of what it bundles, and add them where missing.
 
   - Test: evals case "release artefacts"
-  - Since: this change
+  - Since: #14
 
 ## Advisories
 
@@ -95,7 +95,7 @@ SUP-5: The skill MUST make the agent block pull requests that change
 dependencies on known advisories and run the same check on a schedule.
 
   - Test: evals case "advisories"
-  - Since: this change
+  - Since: #14
 
 SUP-6: Before a blocking gate lands, the skill MUST make the agent clear the
 existing advisories: update where a fixed version exists, otherwise check
@@ -103,7 +103,7 @@ whether the project reaches the vulnerable code and ignore the advisory
 with that reason and a date.
 
   - Test: evals case "advisories"
-  - Since: this change
+  - Since: #14
 
 ## Release artefacts and disclosure
 
@@ -112,7 +112,7 @@ SUP-7: The skill MUST make the agent publish a machine-readable SBOM
 and provenance attestation where those exist.
 
   - Test: evals case "release artefacts"
-  - Since: this change
+  - Since: #14
 
 SUP-8: The skill MUST make the agent check that SECURITY.md names the
 supported versions and that fixed vulnerabilities are published with
@@ -120,14 +120,14 @@ affected versions and severity, and that release notes put security fixes
 first.
 
   - Test: evals case "disclosure"
-  - Since: this change
+  - Since: #14
 
 SUP-9: The skill MUST NOT make the agent commit the maintainers to response
 times or support periods they have not stated. Such text goes into the pull
 request as a question.
 
   - Test: evals case "disclosure"
-  - Since: this change
+  - Since: #14
 
 ## Frameworks
 
@@ -144,14 +144,14 @@ SUP-10: The skill MUST make the agent cite framework clauses from
 partly met, a gap, or a decision for the maintainers.
 
   - Test: evals case "frameworks"
-  - Since: this change
+  - Since: #14
 
 SUP-11: The skill MUST make the agent state the CRA role as an assessment
 with the open facts, never as a legal conclusion, and MUST NOT report a
 project as compliant with any framework.
 
   - Test: evals case "frameworks"
-  - Since: this change
+  - Since: #14
 
 ## Delivery
 
@@ -160,14 +160,14 @@ contribution rules (spec process, commit convention, fork-only workflow)
 over its own defaults.
 
   - Test: evals case "delivery"
-  - Since: this change
+  - Since: #14
 
 SUP-13: When two pull requests touch the same file, the skill MUST make the
 agent merge both onto a scratch branch off the default branch and build it
 before opening the second.
 
   - Test: evals case "delivery"
-  - Since: this change
+  - Since: #14
 
 SUP-14: The skill MUST cover GitHub and GitLab: the agent detects the forge
 from the remotes and uses that forge's CI triggers, update bot, required
@@ -179,7 +179,7 @@ pipeline without a push event, and a merge request from a fork runs in the
 fork with the fork's CI configuration.
 
   - Test: evals case "gitlab"
-  - Since: this change
+  - Since: #14
 
 ## Verification
 
