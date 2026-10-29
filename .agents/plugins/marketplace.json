@@ -47,6 +47,17 @@
         "installation": "AVAILABLE"
       },
       "category": "DevOps"
+    },
+    {
+      "name": "supply-chain",
+      "source": {
+        "source": "local",
+        "path": "./plugins/supply-chain"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "Security"
     }
   ]
 }

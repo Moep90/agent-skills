@@ -119,6 +119,27 @@ PLUGINS: dict[str, dict[str, object]] = {
             "kubernetes",
         ],
     },
+    "supply-chain": {
+        "version": "0.1.0",
+        "displayName": "Supply Chain",
+        "description": (
+            "Audit a repository's dependency licences, advisories and release artefacts against "
+            "the CRA, NIST SSDF and CIS Controls, and close the gaps with pull requests."
+        ),
+        "author": "Moep90",
+        "category": "security",
+        "categoryTitle": "Security",
+        "keywords": [
+            "supply-chain",
+            "licence",
+            "sbom",
+            "advisories",
+            "cra",
+            "ssdf",
+            "cis",
+            "security",
+        ],
+    },
 }
 
 

@@ -1,0 +1,34 @@
+{
+  "name": "supply-chain",
+  "version": "0.1.0",
+  "description": "Audit a repository's dependency licences, advisories and release artefacts against the CRA, NIST SSDF and CIS Controls, and close the gaps with pull requests.",
+  "author": {
+    "name": "Moep90",
+    "url": "https://github.com/Moep90/agent-skills"
+  },
+  "homepage": "https://github.com/Moep90/agent-skills",
+  "repository": "https://github.com/Moep90/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "supply-chain",
+    "licence",
+    "sbom",
+    "advisories",
+    "cra",
+    "ssdf",
+    "cis",
+    "security"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Supply Chain",
+    "shortDescription": "Agent plugin with skills",
+    "longDescription": "Audit a repository's dependency licences, advisories and release artefacts against the CRA, NIST SSDF and CIS Controls, and close the gaps with pull requests.",
+    "developerName": "Moep90",
+    "category": "Security",
+    "capabilities": [
+      "Read"
+    ],
+    "websiteURL": "https://github.com/Moep90/agent-skills"
+  }
+}
