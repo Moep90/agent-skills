@@ -162,6 +162,18 @@ over its own defaults.
   - Test: evals case "delivery"
   - Since: this change
 
+SUP-14: The skill MUST cover GitHub and GitLab: the agent detects the forge
+from the remotes and uses that forge's CI triggers, update bot, required
+check, provenance and private reporting from `references/forges.md`.
+
+GitLab differs where the gate's trust depends on it. Its dependency and
+licence scanning are Ultimate-only, `rules:changes` is true for every
+pipeline without a push event, and a merge request from a fork runs in the
+fork with the fork's CI configuration.
+
+  - Test: evals case "gitlab"
+  - Since: this change
+
 SUP-13: When two pull requests touch the same file, the skill MUST make the
 agent merge both onto a scratch branch off the default branch and build it
 before opening the second.
@@ -183,5 +195,6 @@ baseline gaps it closed are listed in the pull request.
 | `plugins/supply-chain/skills/hardening-supply-chain/SKILL.md` | The procedure |
 | `plugins/supply-chain/skills/hardening-supply-chain/references/frameworks.md` | Verbatim CRA, AI Act, SSDF and CIS excerpts with sources |
 | `plugins/supply-chain/skills/hardening-supply-chain/references/ecosystems.md` | Tools and gate snippets per ecosystem |
+| `plugins/supply-chain/skills/hardening-supply-chain/references/forges.md` | GitHub and GitLab mechanics |
 | `plugins/supply-chain/skills/hardening-supply-chain/evals/evals.json` | Trigger and content cases |
 | `scripts/sync_plugins.py` | Registry entry `supply-chain` |
