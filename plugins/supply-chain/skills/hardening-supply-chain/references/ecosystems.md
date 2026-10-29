@@ -1,12 +1,16 @@
 # Tools and gates per ecosystem
 
 No versions here: resolve each tool's current release from its registry when you use it.
-Prefer what the repository already runs over adding a tool.
+Prefer what the repository already runs over adding a tool. For an ecosystem not in the
+table, take the scanner its maintainers or OSV.dev name for it, and trust it only after it
+reports one package you know is vulnerable and one licence you know is not allowed.
 
 | Ecosystem | Licences | Advisories | SBOM | Notices in the artefact |
 |---|---|---|---|---|
 | Cargo | `cargo deny check licenses` (`deny.toml` allow list) | `cargo deny check advisories` | `cargo cyclonedx -f json --spec-version 1.5 --no-build-deps --target all` (default is the host target only) | `cargo about generate --fail` with a template |
 | Python, uv | `pip-licenses` in a `uv sync --frozen --no-dev --all-extras` venv, normalised to SPDX | `uv export --frozen --no-dev --all-extras --no-hashes \| pip-audit -r /dev/stdin` | `cyclonedx-py environment` on the synced venv (carries licences; `cyclonedx-py requirements` does not) | `pip-licenses --with-license-file --format=plain-vertical` into the wheel or image |
+| Python, pip | `pip-licenses` in a venv installed from the pinned requirements, normalised to SPDX | `pip-audit -r requirements.txt` | `cyclonedx-py environment` on that venv | `pip-licenses --with-license-file --format=plain-vertical` |
+| Go | `go-licenses check ./...` (module `github.com/google/go-licenses/v2`) | `govulncheck ./...` (default `-scan symbol`: only vulnerabilities the code reaches) | `cyclonedx-gomod app` or `cyclonedx-gomod mod` | `go-licenses save ./... --save_path=<dir>` |
 | npm | `license` field of non-dev entries in `package-lock.json` | `npm audit --omit=dev` | `@cyclonedx/cyclonedx-npm --omit dev` | `vsce`/bundlers copy `node_modules/*/LICENSE`; check the package |
 | Container image | `syft <image> -o spdx-json`, then read licences | `grype <image>` or `trivy image` | `syft <image> -o cyclonedx-json` | `/usr/share/doc/*/copyright` stays in the image |
 | Vendored files | Upstream `LICENSE` at the pinned ref (`gh api repos/<r>/license?ref=<tag>`) | none | one component per vendored group | copy upstream `NOTICE` next to the files |
@@ -75,7 +79,9 @@ ignore = [
 
 ## Release
 
-Notices and SBOM have to cover every target that ships. One pass before the per-target
+Notices and SBOM have to cover every target and feature set that ships. Pass the release
+build's feature selection (`--features`, `--all-features`, extras) to the generator;
+`--target all` does not enable optional features. One pass before the per-target
 builds is enough when the tool sees all targets: `cargo about` does by default, `cargo
 cyclonedx` only with `--target all`. A container image gets its own SBOM from the built
 image. Name the SBOM like the other release assets so the existing checksum and

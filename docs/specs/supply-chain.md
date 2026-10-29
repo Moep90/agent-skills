@@ -72,8 +72,12 @@ read it instead of copying it, so adding a licence stays one decision.
 
 SUP-3: The skill MUST make the agent gate the licences of shipped
 dependencies in every shipped ecosystem on pull requests that change them,
-against the single allow list, failing closed on unknown or compound
+against the single allow list, failing closed on unknown or malformed
 licence strings.
+
+An OR expression passes when one of its identifiers is allowed, which is how
+cargo-deny judges it; an AND expression fails closed. One rule for both gates
+keeps the allow list a list of SPDX identifiers.
 
   - Test: evals case "licence gate"
   - Since: #14
