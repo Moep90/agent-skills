@@ -12,8 +12,8 @@ reports one package you know is vulnerable and one licence you know is not allow
 | Python, pip | `pip-licenses` in a venv installed from the pinned requirements, normalised to SPDX | `pip-audit -r requirements.txt` | `cyclonedx-py environment` on that venv | `pip-licenses --with-license-file --format=plain-vertical` |
 | Go | `go-licenses check ./...` (module `github.com/google/go-licenses/v2`) | `govulncheck ./...` (default `-scan symbol`: only vulnerabilities the code reaches) | `cyclonedx-gomod app` or `cyclonedx-gomod mod` | `go-licenses save ./... --save_path=<dir>` |
 | npm | `license` field of non-dev entries in `package-lock.json` | `npm audit --omit=dev` | `@cyclonedx/cyclonedx-npm --omit dev` | `vsce`/bundlers copy `node_modules/*/LICENSE`; check the package |
-| Container image | `syft <image> -o spdx-json`, then read licences | `grype <image>` or `trivy image` | `syft <image> -o cyclonedx-json` | `/usr/share/doc/*/copyright` stays in the image |
-| Vendored files | Upstream `LICENSE` at the pinned ref (`gh api repos/<r>/license?ref=<tag>`) | none | one component per vendored group | copy upstream `NOTICE` next to the files |
+| Container image | `syft <image> -o spdx-json`, then read licences | Gate: `trivy image --exit-code 1 --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL <image>` (Trivy exits 0 on findings without `--exit-code`). `grype <image>` for the audit only; its `fail-on-severity` has no level for unknown severity | `syft <image> -o cyclonedx-json` | `/usr/share/doc/*/copyright` stays in the image |
+| Vendored files | Upstream `LICENSE` at the pinned ref (`gh api repos/<r>/license?ref=<tag>`) | Map each vendored library to its upstream package and version, or commit, and query OSV (`https://api.osv.dev/v1/query` by package or by commit). Data-only files (schemas, CRDs) carry no code advisories: say so. Anything you cannot map is reported as unscanned | one component per vendored group | copy upstream `NOTICE` next to the files |
 | GitHub Actions | none | zizmor; pin by full SHA | none | none |
 
 Extras ship, so they are scanned: `--all-extras` covers them, and extras declared as
