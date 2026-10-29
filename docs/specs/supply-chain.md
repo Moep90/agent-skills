@@ -162,6 +162,13 @@ over its own defaults.
   - Test: evals case "delivery"
   - Since: this change
 
+SUP-13: When two pull requests touch the same file, the skill MUST make the
+agent merge both onto a scratch branch off the default branch and build it
+before opening the second.
+
+  - Test: evals case "delivery"
+  - Since: this change
+
 SUP-14: The skill MUST cover GitHub and GitLab: the agent detects the forge
 from the remotes and uses that forge's CI triggers, update bot, required
 check, provenance and private reporting from `references/forges.md`.
@@ -174,19 +181,12 @@ fork with the fork's CI configuration.
   - Test: evals case "gitlab"
   - Since: this change
 
-SUP-13: When two pull requests touch the same file, the skill MUST make the
-agent merge both onto a scratch branch off the default branch and build it
-before opening the second.
-
-  - Test: evals case "delivery"
-  - Since: this change
-
 ## Verification
 
 `evals/evals.json` holds one case per subject above, scored by the
-expected strings. A behaviour test ran the skill's procedure against
-kapicorp/kapitan and kadet-hub/generators with and without the skill; the
-baseline gaps it closed are listed in the pull request.
+expected strings. A behaviour test ran the task against kapicorp/kapitan
+with and without the skill, and against kadet-hub/generators without it; the
+pull request lists what the skill changed.
 
 ## Implementation inventory
 
