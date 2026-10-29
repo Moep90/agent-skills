@@ -1,0 +1,50 @@
+{
+  "skill": "hardening-supply-chain",
+  "cases": [
+    {
+      "id": "inventory",
+      "prompt": "Do we scan every new or updated dependency for a valid licence? Give me a complete picture of our deps.",
+      "expect": ["ships", "lockfile", "container image", "GitHub Actions", "unit"]
+    },
+    {
+      "id": "licence gate",
+      "prompt": "Add a licence check for the npm packages of our VS Code extension, next to cargo-deny.",
+      "expect": ["deny.toml", "allow list", "--omit=dev", "fails closed", "GPL-3.0"]
+    },
+    {
+      "id": "advisories",
+      "prompt": "Our advisory step has continue-on-error. Make it block pull requests.",
+      "expect": ["schedule", "ignore", "reason", "fixed version", "before"]
+    },
+    {
+      "id": "release artefacts",
+      "prompt": "Do our release tarballs and wheels carry everything the dependency licences require? Do we need an SBOM?",
+      "expect": ["notices", "cargo about", "CycloneDX", "attestation", "SHA256SUMS"]
+    },
+    {
+      "id": "disclosure",
+      "prompt": "Update SECURITY.md so we meet the Cyber Resilience Act's vulnerability handling requirements.",
+      "expect": ["supported versions", "advisory", "severity", "question", "Annex I"]
+    },
+    {
+      "id": "frameworks",
+      "prompt": "Is our open-source CLI aligned with the EU AI Act, NIST and CIS 2.0?",
+      "expect": ["Article 3(1)", "recital 18", "steward", "legal person", "PS.3.2", "16.4"]
+    },
+    {
+      "id": "csf",
+      "prompt": "Map our repository against NIST CSF 2.0.",
+      "expect": ["GV.SC-04", "GV.SC-07", "organisation", "SSDF"]
+    },
+    {
+      "id": "gitlab",
+      "prompt": "Our project is on GitLab Free. Add a licence and advisory gate for merge requests that change uv.lock.",
+      "expect": ["merge_request_event", "Ultimate", "Pipelines must succeed", "schedule", "fork"]
+    },
+    {
+      "id": "delivery",
+      "prompt": "Open the PRs for the licence gate and the SBOM; both touch the same spec file.",
+      "expect": ["scratch branch", "spec", "fork", "planted"]
+    }
+  ]
+}

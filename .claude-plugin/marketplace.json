@@ -70,6 +70,22 @@
         "migration",
         "kubernetes"
       ]
+    },
+    {
+      "name": "supply-chain",
+      "source": "./plugins/supply-chain",
+      "description": "Audit a repository's dependency licences, advisories and release artefacts against the CRA, NIST SSDF and CIS Controls, and close the gaps with pull requests.",
+      "category": "security",
+      "keywords": [
+        "supply-chain",
+        "licence",
+        "sbom",
+        "advisories",
+        "cra",
+        "ssdf",
+        "cis",
+        "security"
+      ]
     }
   ]
 }

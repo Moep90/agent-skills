@@ -7,6 +7,7 @@ Agent plugins for Claude Code, Codex CLI, Cursor and OpenCode, versioned per plu
 | `kapitan-core` | Skills for the Kapitan inventory model, input types, secret refs and compile debugging | see [CHANGELOG](plugins/kapitan-core/CHANGELOG.md) |
 | `kapitan-generators` | Skills for the kapicorp Kubernetes and Terraform generators, the kadet-hub OCM generator, kadet authoring and project scaffolding | see [CHANGELOG](plugins/kapitan-generators/CHANGELOG.md) |
 | `kapitan-recipes` | Migrate a Helm chart or Kustomize base to a Kapitan recipe on kadet-hub generators and prove it renders the same objects | see [CHANGELOG](plugins/kapitan-recipes/CHANGELOG.md) |
+| `supply-chain` | Audit dependency licences, advisories and release artefacts against the CRA, NIST SSDF and CIS Controls, and close the gaps with pull requests | see [CHANGELOG](plugins/supply-chain/CHANGELOG.md) |
 | `arena` | Cross-model author and review loop: Claude writes and Codex reviews, or the reverse, against a frozen rubric | see [CHANGELOG](plugins/arena/CHANGELOG.md) |
 
 ## Arena

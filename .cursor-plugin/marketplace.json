@@ -26,6 +26,11 @@
       "name": "kapitan-recipes",
       "source": "./plugins/kapitan-recipes",
       "description": "Migrate a Helm chart, Kustomize base, Docker Compose file or published image to a Kapitan recipe on kadet-hub generators and prove it renders the same objects or deploys."
+    },
+    {
+      "name": "supply-chain",
+      "source": "./plugins/supply-chain",
+      "description": "Audit a repository's dependency licences, advisories and release artefacts against the CRA, NIST SSDF and CIS Controls, and close the gaps with pull requests."
     }
   ]
 }
