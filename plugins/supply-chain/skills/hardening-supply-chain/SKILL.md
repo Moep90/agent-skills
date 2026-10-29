@@ -36,8 +36,10 @@ Then read the existing checks and their triggers. A step with `continue-on-error
 that only runs on a schedule, or a bot whose pull requests sit unmerged detects but does
 not gate. Report it as detection.
 
-Every number states its unit (unique package, lockfile entry, advisory ID after merging
-aliases) and is read against a sample of the raw records before you report it.
+Every number states its unit and the key it was deduplicated on: package name plus
+version, advisory ID after merging aliases (CVE, GHSA, PYSEC, RUSTSEC). A package or
+advisory found in two ecosystems or release targets counts once. Read a sample of the raw
+records behind each number before you report it.
 
 ## 2. Scan
 

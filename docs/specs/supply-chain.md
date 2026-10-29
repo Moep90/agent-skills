@@ -72,12 +72,15 @@ read it instead of copying it, so adding a licence stays one decision.
 
 SUP-3: The skill MUST make the agent gate the licences of shipped
 dependencies in every shipped ecosystem on pull requests that change them,
-against the single allow list, failing closed on unknown or malformed
-licence strings.
+against the single allow list. A gate MUST NOT accept a licence string that
+cannot be satisfied with allowed licences alone, and MUST fail closed on a
+string it cannot parse.
 
-An OR expression passes when one of its identifiers is allowed, which is how
-cargo-deny judges it; an AND expression fails closed. One rule for both gates
-keeps the allow list a list of SPDX identifiers.
+An OR expression is satisfiable when one alternative is allowed, so an
+unknown identifier next to an allowed one is acceptable. An AND expression
+is satisfiable when every identifier is allowed. cargo-deny judges both that
+way. A simpler gate MAY be stricter, as the npm snippet is by failing every
+AND expression closed.
 
   - Test: evals case "licence gate"
   - Since: #14
