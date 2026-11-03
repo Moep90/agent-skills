@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3
+
+`to-recipe` forbids YAML anchors, aliases and merge keys, which `check lint` of kadet-hub/recipes now rejects (RCP-4a).
+
 ## 0.4.2
 
 `to-recipe` pins `check-v0.12.0`. A new recipe takes the generator pins the other recipes of

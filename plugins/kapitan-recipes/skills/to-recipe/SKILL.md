@@ -380,6 +380,8 @@ Write the inventory the way kadet-hub's authoring guide asks:
   user to set it to a ref with the backend of their choice, such as `?{gpg:...}`.
 - Use block style. Use flow style only for a mapping or list that fits on one line of at
   most 80 characters, such as `{fieldPath: metadata.namespace}`.
+- Write no YAML anchors (`&name`), aliases (`*name`) or merge keys (`<<`). Write a repeated
+  value out each time (RCP-4a).
 - Put a line into the recipe only if it changes the output.
 
 Compile the target. A compile error means the inventory does not match the generator's
