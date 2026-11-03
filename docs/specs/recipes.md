@@ -448,7 +448,7 @@ None. Publishing (former OQ-1) moved to kadet-hub/recipes.
 
 | Value | Setting |
 |---|---|
-| Plugin | `kapitan-recipes` 0.4.2, category `devops` |
+| Plugin | `kapitan-recipes` 0.4.3, category `devops` |
 | Skill | `to-recipe`, category `workflow` |
 | Generator source | `https://kadet-hub.org/catalog.json` |
 | `check` | kadet-hub/recipes `check-v0.12.0`, commit `50d2b645ab68bdf701d1f06c70e8584964298af2` |
