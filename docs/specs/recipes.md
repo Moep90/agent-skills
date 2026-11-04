@@ -112,8 +112,9 @@ Related: [kadet-hub authoring guide](https://github.com/kadet-hub/registry/blob/
 The skill accepts a chart (directory, `.tgz`, repository or OCI reference
 with a version), a Kustomize directory, a Docker Compose file, a container
 image with its documentation, or a git repository. In a repository it looks
-for `Chart.yaml`, `kustomization.yaml` and compose files; with more than one
-candidate it asks which one is meant. A repository with none of them, or
+for `Chart.yaml`, `kustomization.yaml`, compose files and a compose example
+in a code block of `README.md` (DEC-28 in kadet-hub/recipes); with more than
+one candidate it asks which one is meant. A repository with none of them, or
 with only Dockerfiles and compose services that `build:` without a
 published `image`, is an image source (Images).
 
@@ -152,8 +153,13 @@ published `image`, is an image source (Images).
   kadet-hub/recipes writes the pin as the README's compose `Source` line
   (RCP-23) and checks the SHA-256.
 
-  - Test: manual: AC-5
-  - Since: #8
+  A compose example that the repository carries only as a code block in
+  `README.md` is pinned by the README's SHA-256, and the `Source` line
+  names `README.md`. `check` and the registry gate verify only the SHA-256
+  of the file the line names (DEC-28 there).
+
+  - Test: manual: AC-5, AC-11
+  - Since: #8; code block in `README.md`: this change
 
 ## Mapping to generators
 
@@ -198,13 +204,15 @@ then checked against the generator's README for the fields it needs.
   says, and a gap listed there, or a key the table does not map, MUST stop
   the migration as REC-5 does.
 
-  The skill carries the table in step 3. Where it and RCP-37 disagree,
-  RCP-37 wins (DEC-5). A `build:` service without a published `image`
-  makes the project an image source (REC-15), which stops only where
-  upstream publishes no image either (REC-16).
+  The skill carries the table and its gaps in step 3, each row with what
+  to render and without the reasons RCP-37 gives. Where it and RCP-37
+  disagree, RCP-37 wins (DEC-5). A `build:` service without a published
+  `image` makes the project an image source (REC-15), which stops only
+  where upstream publishes no image either (REC-16).
 
-  - Test: manual: AC-5, AC-6
-  - Since: #8; `build:` to an image source: #10
+  - Test: manual: AC-5, AC-6, AC-11
+  - Since: #8; `build:` to an image source: #10; the rows of
+    kadet-hub/recipes#63, #66 and #68: this change
 
 ## Images
 
@@ -405,9 +413,10 @@ recipe of its own and the parent includes it.
   `contrib/docker-compose/basic.yml` of Miniflux 2.3.4 produces a recipe
   that passes `check miniflux --level renders` and then `--level deploys`.
   Check: manual, against `miniflux/` in kadet-hub/recipes#8
-- AC-6 (REC-10, REC-16): running the skill on a compose file with a host
-  bind mount, or with a `build:` service whose upstream publishes no
-  image, stops with a gap report and writes no recipe.
+- AC-6 (REC-10, REC-16): running the skill on a compose file with a bind
+  mount of an absolute host path, or with a `build:` service whose
+  upstream publishes no image, stops with a gap report and writes no
+  recipe.
   Check: manual
 - AC-7 (REC-12, REC-13, REC-14): running the skill on the CloudNativePG
   chart 0.29.1 vendors one file per CRD below the recipe's `vendor/`, each
@@ -429,6 +438,11 @@ recipe of its own and the parent includes it.
   valkey-io's chart `oci://ghcr.io/valkey-io/valkey-helm/valkey` as the
   source.
   Check: manual, against `valkey/` in kadet-hub/recipes
+- AC-11 (REC-9, REC-10): running the skill on the sources that the `Source`
+  lines of `paperless-ngx`, `searxng` and `pihole` in kadet-hub/recipes
+  name, for `pihole` the compose example in `README.md`, maps every compose
+  key as those recipes do and writes no gap report.
+  Check: manual, against those three recipes
 - AC-4: `scripts/validate_skills.py` passes on the skill and its
   `evals/evals.json` (marketplace.md MKT-13).
   Check: CI job `quality`
@@ -448,7 +462,7 @@ None. Publishing (former OQ-1) moved to kadet-hub/recipes.
 
 | Value | Setting |
 |---|---|
-| Plugin | `kapitan-recipes` 0.4.3, category `devops` |
+| Plugin | `kapitan-recipes` 0.5.0, category `devops` |
 | Skill | `to-recipe`, category `workflow` |
 | Generator source | `https://kadet-hub.org/catalog.json` |
 | `check` | kadet-hub/recipes `check-v0.12.0`, commit `50d2b645ab68bdf701d1f06c70e8584964298af2` |
