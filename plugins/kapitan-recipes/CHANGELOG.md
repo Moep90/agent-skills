@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0
+
+`to-recipe` maps the compose rows that kadet-hub/recipes added to RCP-37 in #63, #66 and #68.
+A service that runs a project kadet-hub/recipes has a recipe for becomes that included recipe.
+A relative bind mount of a directory the repository does not contain becomes a volume claim,
+or a ConfigMap when it is a settings directory the image's entrypoint fills from a template.
+The image's `HEALTHCHECK` becomes the readiness probe where the service sets none. An
+`env_file` the repository does not contain maps from the example file the documentation
+copies. The project `name`, the SELinux options `z` and `Z` and a `cap_add` the documentation
+names as optional render nothing. A compose example in a code block of `README.md` is a
+compose source, pinned by the README's SHA-256 (DEC-28). A parent leaves the recipes it
+includes as they are (DEC-12).
+
 ## 0.4.3
 
 `to-recipe` forbids YAML anchors, aliases and merge keys, which `check lint` of kadet-hub/recipes now rejects (RCP-4a).

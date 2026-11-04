@@ -51,8 +51,8 @@ render a chart with the recipe's name as release name.
 | Chart in a repository | `helm pull <repo>/<chart> --version <v>` and record the archive's SHA-256, then `helm template <name> <chart.tgz> --namespace=<ns> -f <values> --include-crds` |
 | OCI chart | `helm pull oci://<ref> --version <v>`, then the same `helm template`. Record the digest `helm pull` prints. |
 | Kustomize directory | `kustomize build <dir>`, or `kubectl kustomize <dir>` |
-| Git repository | Check out the commit. A `Chart.yaml` means a chart, a `kustomization.yaml` means a base, a `compose.yaml` or `docker-compose.yml` a compose file. If there are several, ask which one. None of them, or only Dockerfiles and compose services that `build:` without a published `image`, means an image. |
-| Docker Compose file | Pin the repository at a full commit SHA and record the file's SHA-256. In a directory without `.env`, `docker compose -f <file> config` resolves variables to their defaults and `extends` within the file. Ask for every variable without a default. Keep the output as `compose.yaml`: it is the reference for steps 2 to 5. Nothing is rendered to Kubernetes. |
+| Git repository | Check out the commit. A `Chart.yaml` means a chart, a `kustomization.yaml` means a base, a `compose.yaml` or `docker-compose.yml` a compose file, and so does a compose example in a code block of `README.md` (DEC-28). If there are several, ask which one. None of them, or only Dockerfiles and compose services that `build:` without a published `image`, means an image. |
+| Docker Compose file | Pin the repository at a full commit SHA and record the file's SHA-256. For a code block, record the SHA-256 of `README.md` and save the block as the file. In a directory without `.env`, `docker compose -f <file> config` resolves variables to their defaults and `extends` within the file. Ask for every variable without a default. Keep the output as `compose.yaml`: it is the reference for steps 2 to 5. Nothing is rendered to Kubernetes. |
 | Image | Pin the image of each service as below. Read its documentation, README, Dockerfile and entrypoint at that tag, and a compose file that builds it. Nothing is rendered. |
 
 Without `--include-crds`, Helm leaves out the CRDs in the chart's `crds/` directory. Some
@@ -62,8 +62,9 @@ Check the chart's `values.yaml` for one.
 A chart with subcharts (`charts/` in the chart, `dependencies` in `Chart.yaml`) becomes one
 recipe per subchart plus the parent recipe. Migrate each subchart first, with the values the
 parent passes to it, then the parent, whose `init.yml` includes the subchart recipes through
-`classes:` and overrides only what the parent's values change. If a subchart recipe already
-exists in the project or in kadet-hub/recipes, include it instead of writing it again.
+`classes:` and leaves them as they are (DEC-12). The parent writes nothing below their keys
+and connects to the Services and Secrets they render. If a subchart recipe already exists in
+the project or in kadet-hub/recipes, include it instead of writing it again.
 
 For a chart or a base, split the output into three files outside the Kapitan project. Split on the `---` lines
 between documents and classify each document by its `kind` and its `helm.sh/hook`
@@ -133,7 +134,8 @@ its SHA-256 (step 4).
 
 A compose file or an image maps service by service to components of the `kubernetes`
 generator 1.7.0 or later, a compose file by the table in step 3, an image as Images there
-says. Write one row per service, with the objects its component renders.
+says. Write one row per service, with the objects its component renders or the recipe it
+includes.
 
 ## 3. Stop on a gap
 
@@ -162,15 +164,15 @@ kadet-hub/recipes RCP-37 holds this table. Where the two differ, RCP-37 wins.
 | Compose | Recipe |
 |---|---|
 | `services.<service>` | a component: a Deployment, or a StatefulSet if it mounts a named volume |
-| `image` | `image` as `tag@sha256:<digest>` of the multi-arch index. Pin `latest` or a missing tag to the most specific version tag with the same digest now, and name it in the README. |
+| `image` | `image` as `tag@sha256:<digest>`. Pin `latest` or a missing tag to the most specific version tag with the same digest now, and name it in the README. |
 | `entrypoint`, `command` | `command`, `args`. Split a string as `docker compose` does. |
 | `environment`, `env_file` | `env`. A credential, or a value that contains one such as a database URL, becomes a key of the component's `secrets`, referenced with `secretKeyRef`, whose value is a parameter under `applications.<name>` that the recipe leaves unset. |
-| `ports` | a port with `container_port` and `service_port`, `service.type: ClusterIP`. The published port is the Service port. Drop a host IP. |
+| `ports` | a port with `container_port` and `service_port`, `service.type: ClusterIP`. The published port is the Service port. Drop a host IP. Exposure outside the cluster is left to the target. |
 | `expose`, and ports other services connect to | a port with `service_port`. A compose network reaches every port, so declare a port the others use even without `expose`. |
 | `healthcheck` | `healthcheck.readiness` of `type: command`, `CMD` as the command list, `CMD-SHELL` as `sh -c`. `interval`, `timeout`, `retries` become period, timeout and failure threshold. Write the compose defaults 30s, 30s and 3 where the generator's differ. No liveness probe, because compose never restarts an unhealthy container. Drop `start_period` and `start_interval`. `disable: true` renders none. |
 | `depends_on` | nothing. The dependency's readiness keeps its Service without endpoints, and the dependent restarts until it connects. Add no init container. |
 | `deploy.replicas` | `replicas` |
-| `deploy.resources` | `resources`: `limits` from `limits`, `requests` from `reservations`. `512M` is `512Mi`. |
+| `deploy.resources` | `resources`: `limits` from `limits`, `requests` from `reservations`. `cpus` keeps its value in CPU units, and `512M` is `512Mi`. |
 | named `volumes` of one service | `volume_claims` with `volume_mounts`, `ReadWriteOnce`, `1Gi` as a README setting |
 | `configs`, `secrets` | `config_maps`, `secrets` with `mount` at the compose target, default `/<config>` and `/run/secrets/<secret>`. Write a config's content inline and its source and SHA-256 in the README. A secret's value is a parameter the target sets. |
 | bind mount of a file in the pinned repository | as `configs`, read-only |
@@ -178,13 +180,22 @@ kadet-hub/recipes RCP-37 holds this table. Where the two differ, RCP-37 wins.
 | `user` | `security_context.runAsUser` and `runAsGroup`, a name resolved from the image's `/etc/passwd` |
 | `labels` | `pod_annotations` |
 | `container_name`, `networks` that every service shares | nothing |
+| a service that runs a project kadet-hub/recipes has a recipe for | that recipe, included as step 1 says for a subchart (RCP-47). Point references to the service at the Service and Secret the recipe renders (DEC-20). |
+| relative bind mount of a directory the pinned repository does not contain, other than the settings directory below | as a named volume (DEC-21) |
+| the image's `HEALTHCHECK`, where the service sets no `healthcheck` | as `healthcheck`, read from the pinned image's config |
+| top-level `name` | nothing |
+| `env_file` of a file the pinned repository does not contain | `env` from the example file that the documentation copies to it. `docker compose config` needs the file in place. |
+| SELinux option `z` or `Z` of a bind mount | nothing |
+| relative bind mount of a directory the pinned repository does not contain, where the documentation has the user write a settings file and the image's entrypoint otherwise creates it from a template in the image | `config_maps` with the template's settings, `mount` at the target. A secret the entrypoint generates into the file is a parameter the target sets. Name the template with its SHA-256 in the README (DEC-23). |
+| `cap_add` of capabilities that the documentation names as optional, or as needed only for a feature the recipe does not set up | nothing. Name each capability in the README with what it would add (DEC-29). |
 
 Any key the table does not name is a gap, and so are:
 
 - `build` without a published `image`, unless the project is an image source (step 1);
 - `network_mode`;
-- bind mounts of directories or of paths outside the repository, the Docker socket among them;
-- `privileged`, `cap_add`, `devices`, `pid: host`, `ipc: host`;
+- bind mounts of directories the pinned repository contains, of absolute paths or of paths
+  outside the repository, the Docker socket among them;
+- `privileged`, any other `cap_add`, `devices`, `pid: host`, `ipc: host`;
 - `networks` that separate services, `aliases`, fixed addresses, external networks;
 - `extends` or `include` of a file outside the pinned repository;
 - a named volume that several services mount;
@@ -555,7 +566,7 @@ Do not report the recipe as equal.
   - `https://<repository>/<chart>:<version>@sha256:<digest>` for a chart in an HTTP
     repository, with the URL `helm repo add` takes and the archive's SHA-256;
   - `https://github.com/<owner>/<repo>/blob/<commit>/<path>@sha256:<digest>` for a compose
-    file;
+    file, with `README.md` as `<path>` for a code block there;
   - `<registry>/<repository>:<tag>@sha256:<digest>` for an image, the main service's image
     with its registry host, such as `docker.io/powerdns/pdns-auth-51:5.1.5@sha256:<digest>`.
 
@@ -565,7 +576,8 @@ Do not report the recipe as equal.
   architectures of the pinned digest;
 - a section `## Include` with the `classes:` lines and the options, directly followed by
   `## Required parameters`, which names every parameter the target must set, such as refs for
-  generated passwords, or says "No parameter has to be set.";
+  generated passwords and the parameters of included recipes (RCP-51), or says "No parameter
+  has to be set.";
 - about ten chart values users commonly change, each with its inventory path, such as
   `replicaCount` to `components.<name>.replicas`, and the note that lists set in the target
   are appended. For an image, a section `## Settings` with what a chart would offer as values,
@@ -575,8 +587,8 @@ Do not report the recipe as equal.
 - the proof: the `check` version and the kind node image it pins (`KIND_NODE_IMAGE` in
   `check/check.py`), or the steps without check and their node image, the remaining
   differences with their classes, and what `tests/smoke` checks;
-- for a compose file, the mapping: each service with its component, the renamed DNS names,
-  the images pinned from `latest`, and the keys not rendered;
+- for a compose file, the mapping: each service with its component or included recipe, the
+  renamed DNS names, the images pinned from `latest`, and the keys not rendered;
 - for a chart, replacing a running Helm release, as steps marked not tested:
   1. delete each Deployment whose selector changed with `--cascade=orphan`;
   2. delete the release's Helm secrets `sh.helm.release.v1.<release>.*`, so Helm forgets
