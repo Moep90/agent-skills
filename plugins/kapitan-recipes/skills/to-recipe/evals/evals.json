@@ -64,6 +64,14 @@
     {
       "prompt": "Make a Kapitan recipe from the Valkey container image. The project also publishes a Helm chart.",
       "expect": ["chart", "DEC-10", "helm template", "--level renders"]
+    },
+    {
+      "prompt": "Pi-hole's only compose example is a code block in the docker-pi-hole README. It bind-mounts ./etc-pihole and adds cap_add NET_ADMIN, SYS_TIME and SYS_NICE. Turn it into a Kapitan recipe.",
+      "expect": ["README.md", "SHA-256", "DEC-28", "DEC-21", "DEC-29", "--level deploys"]
+    },
+    {
+      "prompt": "Our docker-compose.yml runs the app next to a postgres and a valkey service, bind-mounts ./export, which the repository does not contain, and sets no healthcheck, though the app's image has a HEALTHCHECK. Migrate it to a Kapitan recipe.",
+      "expect": ["included recipe", "postgresql", "valkey", "named volume", "HEALTHCHECK", "readiness"]
     }
   ]
 }
