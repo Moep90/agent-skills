@@ -159,7 +159,7 @@ published `image`, is an image source (Images).
   of the file the line names (DEC-28 there).
 
   - Test: manual: AC-5, AC-11
-  - Since: #8; code block in `README.md`: this change
+  - Since: #8; code block in `README.md`: #16
 
 ## Mapping to generators
 
@@ -212,7 +212,7 @@ then checked against the generator's README for the fields it needs.
 
   - Test: manual: AC-5, AC-6, AC-11
   - Since: #8; `build:` to an image source: #10; the rows of
-    kadet-hub/recipes#63, #66 and #68: this change
+    kadet-hub/recipes#63, #66 and #68: #16
 
 ## Images
 
