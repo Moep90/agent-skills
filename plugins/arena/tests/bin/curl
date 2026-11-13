@@ -1,0 +1,5 @@
+#!/bin/sh
+# Stub curl for the ARENA-30 availability probe (docs/specs/arena.md, AC-13).
+set -eu
+printf 'curl %s\n' "$*" >>"${ARENA_STUB_LOG:?ARENA_STUB_LOG not set}"
+exit "$(cat "${ARENA_STUB_DIR:?}/curl.exit" 2>/dev/null || echo 0)"

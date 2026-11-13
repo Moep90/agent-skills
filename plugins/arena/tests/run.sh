@@ -49,6 +49,8 @@ for sc in "$here/scenarios/$name" "$here/scenarios/$name"-*; do
   args=$(cat "$sc/args" 2>/dev/null || echo "doc.md --rubric text")
   (
     cd "$proj"
+    # shellcheck source=/dev/null
+    if [ -f "$sc/env" ]; then set -a; . "$sc/env"; set +a; fi
     ARENA_STUB_DIR="$sc" ARENA_STUB_LOG="$work/calls.log" PATH="$here/bin:$PATH" \
       timeout 1500 claude -p "/arena $args" --permission-mode bypassPermissions \
       </dev/null >"$work/out.txt" 2>&1

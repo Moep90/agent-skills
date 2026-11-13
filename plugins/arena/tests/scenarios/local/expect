@@ -1,0 +1,5 @@
+exec_calls 1
+args --sandbox read-only
+args -m stub-local
+args model_provider=arena_local
+no_args gpt-6\.1-sol

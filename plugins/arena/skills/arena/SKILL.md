@@ -8,7 +8,7 @@ description: >
   needs the user. Use when the user asks to have work reviewed or improved by the other
   model, to run arena, or to iterate a draft between Claude and Codex. The CLIs it calls
   (codex, claude) can read any file the user can read, and everything they read is sent to
-  OpenAI or Anthropic.
+  OpenAI or Anthropic, or with `--reviewer local` to the user's own endpoint.
 ---
 
 # Arena
@@ -31,7 +31,7 @@ sends content to OpenAI and Anthropic." and stop without running any command.
 
 ## 1. Parse the call
 
-`arena <task or path> [--author claude|codex] [--rubric code|skill|text]`
+`arena <task or path> [--author claude|codex] [--reviewer local] [--rubric code|skill|text]`
 
 - If the first argument is an existing path (file or directory), this is a **path run**: the
   target is that path and round 1 is a review. Otherwise it is a **task run**: the argument is
@@ -40,14 +40,26 @@ sends content to OpenAI and Anthropic." and stop without running any command.
   otherwise `other`.
 - The author family is `--author`, or your family if `--author` is missing. If your family is
   `other` and `--author` is missing, ask the user for `--author` and stop.
-- The reviewer family is the other one of `claude` and `codex`.
+- The reviewer family is the other one of `claude` and `codex`. With `--reviewer local` the
+  reviewer is `local` if the probe in section 2 passes; otherwise it stays the other family
+  and you remember the fallback for the stop report. `local` is never the author.
 - If the author family is your family, you are the author (in-session). Otherwise the author
   runs as a CLI process (section 6).
 
 ## 2. Preflight
 
-Before any other command, check every CLI this run will call: the reviewer's, and the
-author's if the author runs as a CLI process.
+With `--reviewer local`, first probe the local endpoint. It is available only when
+`ARENA_LOCAL_BASE_URL`, `ARENA_LOCAL_MODEL` and `ARENA_LOCAL_API_KEY` are all set,
+`command -v codex` exits 0, and this exits 0:
+
+```bash
+curl -sf -m 10 -o /dev/null -H "Authorization: Bearer $ARENA_LOCAL_API_KEY" "$ARENA_LOCAL_BASE_URL/models"
+```
+
+Do not check the model ID in the response: gateways route models they do not list.
+
+Then, before any other command, check every CLI this run will call: the reviewer's, and the
+author's if the author runs as a CLI process. A local reviewer needs no login check.
 
 - codex: `codex login status` must exit 0. Otherwise stop with: "Codex is not logged in. Run
   `codex login`."
@@ -119,6 +131,8 @@ then reviews. A path run starts with a review.
      `timeout 590 codex exec -m gpt-6.1-sol -c model_reasoning_effort=medium --sandbox read-only -o "$RUN/review-$R.md" - < "$RUN/review-$R.prompt" 2> "$RUN/review-$R.err"`
    - Claude reviewer:
      `timeout 590 claude -p --tools Read,Grep,Glob --strict-mcp-config --no-session-persistence < "$RUN/review-$R.prompt" > "$RUN/review-$R.md" 2> "$RUN/review-$R.err"`
+   - Local reviewer (no reasoning effort):
+     `timeout 590 codex exec -m "$ARENA_LOCAL_MODEL" -c model_provider=arena_local -c model_providers.arena_local.name=arena_local -c "model_providers.arena_local.base_url=$ARENA_LOCAL_BASE_URL" -c model_providers.arena_local.env_key=ARENA_LOCAL_API_KEY -c model_providers.arena_local.wire_api=responses --sandbox read-only -o "$RUN/review-$R.md" - < "$RUN/review-$R.prompt" 2> "$RUN/review-$R.err"`
 5. If the call exits non-zero (124 means timeout), stop (section 8) without retry. Quote
    the stderr line that contains `usage limit` if there is one, because it carries the reset
    time; otherwise quote the last 5 lines of stderr.
@@ -257,7 +271,8 @@ Every stop after the run directory exists reports:
   violation, CLI failure (with the quoted stderr), or unchanged target;
 - the artifact path, the ledger path `$RUN/ledger.md`, and the review number `R`;
 - on approval, the minor findings; on hand-over, the open blocking findings;
-- any files changed outside the target by a CLI author.
+- any files changed outside the target by a CLI author;
+- if `--reviewer local` fell back: "Local reviewer unavailable, reviewed by `<family>` instead."
 
 Keep `$RUN`. A stopped run cannot be resumed; calling Arena again on the same path starts a
 new run on the current state.
