@@ -221,7 +221,7 @@ A model from a third family (Qwen, Gemma) keeps ARENA-2 for either author.
   make a local model the author.
 
   - Test: tests/run.sh local (AC-13)
-  - Since: this change
+  - Since: #17
 
 - ARENA-29: A local reviewer MUST run as `codex exec --sandbox read-only`
   with `-m "$ARENA_LOCAL_MODEL"` and the provider `arena_local` set through
@@ -233,7 +233,7 @@ A model from a third family (Qwen, Gemma) keeps ARENA-2 for either author.
   `qwen3.8-flash-next` returned a valid `VERDICT:` line with exit 0.
 
   - Test: tests/run.sh local (AC-13); manual: AC-14
-  - Since: this change
+  - Since: #17
 
 - ARENA-30: The local reviewer is available when all three variables are set,
   `codex` is on `PATH` and
@@ -246,7 +246,7 @@ A model from a third family (Qwen, Gemma) keeps ARENA-2 for either author.
   `/models`.
 
   - Test: tests/run.sh local (AC-13, `local-unavailable` variant)
-  - Since: this change
+  - Since: #17
 
 - ARENA-31: A run that fell back under ARENA-30 MUST say so in its stop
   report, naming the reviewer it used instead.
@@ -255,7 +255,7 @@ A model from a third family (Qwen, Gemma) keeps ARENA-2 for either author.
   they learn that it went to OpenAI or Anthropic instead.
 
   - Test: tests/run.sh local (AC-13, `local-unavailable` variant)
-  - Since: this change
+  - Since: #17
 
 ## Rubrics
 
