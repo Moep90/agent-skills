@@ -41,7 +41,7 @@ _SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 # The one source of truth for every plugin. Edit here, then run this script.
 PLUGINS: dict[str, dict[str, object]] = {
     "arena": {
-        "version": "0.1.0",
+        "version": "0.2.0",
         "displayName": "Arena",
         "description": (
             "Cross-model author and review loop: Claude writes and Codex reviews, or the "

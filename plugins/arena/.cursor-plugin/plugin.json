@@ -1,6 +1,6 @@
 {
   "name": "arena",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "Arena",
   "description": "Cross-model author and review loop: Claude writes and Codex reviews, or the reverse, against a frozen rubric until the reviewer approves.",
   "author": {

@@ -1,0 +1,4 @@
+exec_calls 1
+args -m gpt-6\.1-sol
+no_args arena_local
+output local reviewer unavailable
