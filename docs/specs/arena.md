@@ -61,6 +61,15 @@ with local models so that the content it processes stays on the machine, and
 Arena exists to send content to OpenAI and Anthropic. A variant with two
 local model families would be a different product.
 
+DEC-7: A local model MAY review, never write. `--reviewer local` sends the
+review to an OpenAI-compatible endpoint the user runs, so the review neither
+costs Plus quota nor sends the artifact to OpenAI. The author stays Claude or
+Codex, because the loop's quality rests on the author and no local author has
+been measured. The local reviewer runs only when its endpoint answers; otherwise
+the run falls back to the default reviewer (ARENA-30). DEC-6 still holds: the
+host is never Hermes Agent, and the author still sends content to Anthropic or
+OpenAI.
+
 Distribution, manifests and versioning are specified in
 [marketplace.md](marketplace.md).
 
@@ -87,7 +96,7 @@ with the default author, the session writes and `codex exec` reviews; on
 Codex CLI the mirror image holds. On OpenCode the host model's family decides;
 when it is neither Claude nor GPT, the author always runs as a CLI process.
 
-- ARENA-1a: Every Codex call MUST set model and reasoning effort explicitly
+- ARENA-1a: Every Codex call to OpenAI MUST set model and reasoning effort explicitly
   with `-m <model> -c model_reasoning_effort=<effort>`, using the values in
   the implementation inventory.
 
@@ -107,7 +116,7 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
   - Since: #4
 
 - ARENA-1: The skill MUST be invocable as
-  `arena <task or path> [--author claude|codex] [--rubric code|skill|text]`,
+  `arena <task or path> [--author claude|codex] [--reviewer local] [--rubric code|skill|text]`,
   through the host's skill invocation: `/arena:arena` in Claude Code when
   installed as a plugin (Claude Code namespaces plugin skills), `/arena` in
   Claude Code for a standalone skill and in OpenCode, `$arena` in Codex CLI. `--author` defaults to the host model's family. When
@@ -190,6 +199,63 @@ when it is neither Claude nor GPT, the author always runs as a CLI process.
 
   - Test: tests/run.sh approved (AC-1, the reported verdict is the stub's)
   - Since: #4
+
+## Local reviewer
+
+The local reviewer is any OpenAI-compatible endpoint that serves the Responses
+API, for example a LiteLLM gateway in front of vLLM. Arena drives it through
+`codex exec` with a provider defined on the command line, so no Codex config
+file and no ChatGPT login are needed. Three environment variables configure
+it, because endpoint and key belong to the user's machine and not to the
+repository:
+
+| Variable | Meaning |
+|---|---|
+| `ARENA_LOCAL_BASE_URL` | Base URL including `/v1` |
+| `ARENA_LOCAL_MODEL` | Model ID the endpoint routes |
+| `ARENA_LOCAL_API_KEY` | Bearer key, passed to Codex by name through `env_key` |
+
+A model from a third family (Qwen, Gemma) keeps ARENA-2 for either author.
+
+- ARENA-28: `--reviewer local` MUST replace only the reviewer. It MUST NOT
+  make a local model the author.
+
+  - Test: tests/run.sh local (AC-13)
+  - Since: this change
+
+- ARENA-29: A local reviewer MUST run as `codex exec --sandbox read-only`
+  with `-m "$ARENA_LOCAL_MODEL"` and the provider `arena_local` set through
+  `-c`: `base_url` from `ARENA_LOCAL_BASE_URL`, `env_key=ARENA_LOCAL_API_KEY`,
+  `wire_api=responses`.
+
+  No reasoning effort is set, because local models differ in whether they
+  accept one. A probe with codex-cli 0.167.0 against a LiteLLM gateway serving
+  `qwen3.8-flash-next` returned a valid `VERDICT:` line with exit 0.
+
+  - Test: tests/run.sh local (AC-13); manual: AC-14
+  - Since: this change
+
+- ARENA-30: The local reviewer is available when all three variables are set,
+  `codex` is on `PATH` and
+  `curl -sf -m 10 -H "Authorization: Bearer $ARENA_LOCAL_API_KEY" "$ARENA_LOCAL_BASE_URL/models"`
+  exits 0. When it is not available, the run MUST use the default reviewer,
+  the other family of the author, with that reviewer's preflight (ARENA-19).
+
+  The probe checks reachability and the key, not the model ID: a LiteLLM
+  gateway with wildcard routing serves models it does not list under
+  `/models`.
+
+  - Test: tests/run.sh local (AC-13, `local-unavailable` variant)
+  - Since: this change
+
+- ARENA-31: A run that fell back under ARENA-30 MUST say so in its stop
+  report, naming the reviewer it used instead.
+
+  The user asked for a review that stays on the machine. The report is where
+  they learn that it went to OpenAI or Anthropic instead.
+
+  - Test: tests/run.sh local (AC-13, `local-unavailable` variant)
+  - Since: this change
 
 ## Rubrics
 
@@ -487,13 +553,14 @@ The Codex sandbox limits writes, not reads: in `read-only` and
 `workspace-write` mode Codex can read any file the user can read, not only the
 working directory. `claude -p` with `Read`, `Grep` and `Glob` is not confined
 to the working directory either. Whatever either CLI actually reads enters the
-model context and goes to OpenAI or Anthropic. In practice it reads what the prompt points to and what it
+model context and goes to OpenAI or Anthropic, or with a local reviewer to
+`ARENA_LOCAL_BASE_URL`. In practice it reads what the prompt points to and what it
 searches for, which is mostly the working directory. Arena does not filter
 content; only the user can judge what may leave the machine.
 
 - ARENA-25: The skill description MUST state that the CLIs it calls can read
   any file the user can read and that everything they read is sent to OpenAI
-  or Anthropic.
+  or Anthropic, or to the configured endpoint for a local reviewer.
 
   - Test: manual: read `plugins/arena/skills/arena/SKILL.md` frontmatter
   - Since: #4
@@ -593,6 +660,18 @@ evidence for that.
 - AC-12 (ARENA-27): with the skill copied into Hermes Agent's skill directory,
   invoking it produces a refusal and no CLI call.
   Check: manual
+- AC-13 (ARENA-28, ARENA-29, ARENA-30, ARENA-31): two variants, both
+  invoked with `--reviewer local` and the three variables set. With a stub
+  `curl` that exits 0, exactly one `exec` call with `--sandbox read-only`,
+  `-m` from `ARENA_LOCAL_MODEL` and `model_provider=arena_local`, none with
+  `gpt-6.1-sol`. With a stub `curl` that exits 7, exactly one `exec` call
+  with `gpt-6.1-sol` and none with `arena_local`, and the report names the
+  fallback.
+  Check: `tests/run.sh local`
+- AC-14 (ARENA-29): `/arena tests/fixtures/skill-contradiction/SKILL.md
+  --rubric skill --reviewer local` against a real local endpoint ends with a
+  verdict in the contract format.
+  Check: manual
 
 ## Open questions
 
@@ -606,7 +685,8 @@ Verification and ARENA-20.
 |---|---|
 | `plugins/arena/skills/arena/SKILL.md` | The skill: host rules, protocol, rubrics, reviewer prompt, ledger format |
 | `plugins/arena/tests/bin/codex` | Stub CLI: canned responses per scenario, call log with arguments |
-| `plugins/arena/tests/scenarios/<name>/` | Canned stub responses and exit codes for `approved`, `cap`, `ratelimit`, `contract` (five variants), `preflight`, `nogit` (run outside git), `blocked` |
+| `plugins/arena/tests/bin/curl` | Stub for the ARENA-30 probe: exit code from the scenario |
+| `plugins/arena/tests/scenarios/<name>/` | Canned stub responses and exit codes for `approved`, `cap`, `ratelimit`, `contract` (five variants), `preflight`, `nogit` (run outside git), `blocked`, `local` (two variants); an optional `env` file per scenario is sourced before the run |
 | `plugins/arena/tests/run.sh` | Runs one scenario headless in a throwaway git directory linking `.claude/skills/arena` to the skill, asserts on the call log and output |
 | `plugins/arena/tests/fixtures/skill-contradiction/SKILL.md` | Skill with a planted contradiction for AC-7 |
 
@@ -617,4 +697,6 @@ Verification and ARENA-20.
 | Codex model | `gpt-6.1-sol` |
 | Codex reasoning effort | `medium` |
 | Codex call timeout | 10 minutes |
+| Local reviewer provider ID | `arena_local` |
+| Local availability probe timeout | 10 seconds |
 | Secret file patterns | `.env*`, `*.pem`, `*.key`, `id_rsa*`, `credentials*` |
